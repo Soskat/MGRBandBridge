@@ -1,0 +1,170 @@
+﻿<Page
+    x:Class="BandBridge.Views.MainPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:local="using:BandBridge.Views"
+    xmlns:viewModels="using:BandBridge.ViewModels"
+    xmlns:converters="using:BandBridge.Converters"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    mc:Ignorable="d"
+    MinWidth="435" Width="435"
+    MinHeight="600" Height="600">
+    
+    <Page.Resources>
+        <converters:InverseBooleanConverter x:Key="InverseBoolConv"/>
+
+        <Style x:Key="ServerInfoTextBlock" TargetType="TextBlock">
+            <Setter Property="Margin" Value="5"/>
+            <Setter Property="VerticalAlignment" Value="Center"/>
+        </Style>
+        
+        <Style x:Key="HeaderTextBlock" TargetType="TextBlock" BasedOn="{StaticResource ServerInfoTextBlock}">
+            <Setter Property="FontSize" Value="18"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+        </Style>
+
+        <Style x:Key="ListViewItemTextBlock" TargetType="TextBlock">
+            <Setter Property="Margin" Value="5"/>
+        </Style>
+
+        <Style x:Key="ServerInfoTextBox" TargetType="TextBox">
+            <Setter Property="Margin" Value="5"/>
+            <Setter Property="MaxWidth" Value="120"/>
+        </Style>
+
+        <Style x:Key="ServerInfoButton" TargetType="Button">
+            <Setter Property="Margin" Value="5"/>
+            <Setter Property="VerticalAlignment" Value="Center"/>
+            <Setter Property="HorizontalAlignment" Value="Center"/>
+        </Style>
+
+        <Style x:Key="BandInfoButton" TargetType="Button" BasedOn="{StaticResource ServerInfoButton}">
+            <Setter Property="HorizontalAlignment" Value="Left"/>
+        </Style>
+    </Page.Resources>
+
+    <Grid Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="auto"/>
+            <RowDefinition Height="2*"/>
+            <RowDefinition Height="auto"/>
+            <RowDefinition />
+        </Grid.RowDefinitions>
+
+        <!-- Server info & settings -->
+        <Grid Grid.Row="0" Margin="5" Background="#FFAFE2FF">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="auto"/>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="*"/>
+            </Grid.RowDefinitions>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="auto"/>
+                <ColumnDefinition Width="auto"/>
+                <ColumnDefinition/>
+            </Grid.ColumnDefinitions>
+            
+            <TextBlock Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="3"
+                       Style="{StaticResource HeaderTextBlock}">Server info</TextBlock>
+
+            <TextBlock Grid.Row="1" Grid.Column="0"
+                       Style="{StaticResource ServerInfoTextBlock}">Server address:</TextBlock>
+            <TextBlock Grid.Row="1" Grid.Column="1"
+                       Text="{x:Bind ServerVM.LocalHost}"
+                       Style="{StaticResource ServerInfoTextBlock}" FontWeight="Bold"/>
+
+            <TextBlock Grid.Row="2" Grid.Column="0"
+                       Style="{StaticResource ServerInfoTextBlock}">Service port number:</TextBlock>
+            <TextBox Grid.Row="2" Grid.Column="1"
+                     Text="{x:Bind ServerVM.ServicePort, Mode=TwoWay}"
+                     Style="{StaticResource ServerInfoTextBox}"/>
+
+            <TextBlock Grid.Row="3" Grid.Column="0"
+                       Style="{StaticResource ServerInfoTextBlock}">Storage items limit:</TextBlock>
+            <TextBox Grid.Row="3" Grid.Column="1"
+                     Text="{x:Bind ServerVM.StorageSize, Mode=TwoWay}"
+                     Style="{StaticResource ServerInfoTextBox}"/>
+
+            <StackPanel Grid.Row="1" Grid.RowSpan="3" Grid.Column="2"
+                        VerticalAlignment="Center">
+                <Button Content="Start Server"
+                        Click="{x:Bind ServerVM.StartServer}"
+                        IsEnabled="{x:Bind ServerVM.IsServerWorking, Converter={StaticResource InverseBoolConv}, Mode=OneWay}"
+                        Style="{StaticResource ServerInfoButton}"/>
+                <Button Content="Stop Server"
+                        Click="{x:Bind ServerVM.StopServer}"
+                        IsEnabled="{x:Bind ServerVM.IsServerWorking, Mode=OneWay}"
+                        Style="{StaticResource ServerInfoButton}"/>
+            </StackPanel>
+        </Grid>
+
+        <!-- Bands info -->
+        <Grid Grid.Row="1" Margin="5" Background="#FF00A2FF">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="auto"/>
+                <RowDefinition Height="auto"/>
+                <RowDefinition/>
+            </Grid.RowDefinitions>
+            
+            <TextBlock Grid.Row="0"
+                       Style="{StaticResource HeaderTextBlock}">Connected MS Bands</TextBlock>
+
+            <StackPanel Grid.Row="1" Orientation="Vertical">
+                <Button Content="Connect MS Bands"
+                        Click="{x:Bind ServerVM.GetMSBandDevices}"
+                        Style="{StaticResource BandInfoButton}"/>
+                <StackPanel Orientation="Horizontal">
+                    <Button Content="Connect Fake Bands"
+                            Click="{x:Bind ServerVM.GetFakeBands}"
+                            Style="{StaticResource BandInfoButton}"/>
+                    <TextBlock Style="{StaticResource ServerInfoTextBlock}">Fake Bands amount:</TextBlock>
+                    <TextBox Style="{StaticResource ServerInfoTextBox}"
+                             Text="{x:Bind ServerVM.FakeBandsAmount, Mode=TwoWay}"/>
+                </StackPanel>
+            </StackPanel>
+
+            <GridView Grid.Row="2" x:Name="BandsList"
+                      Margin="5" Background="#99D3D3D3"
+                      ItemsSource="{x:Bind ServerVM.ConnectedBandsCollection, Mode=OneWay}"
+                      SelectionMode="None">
+                <GridView.ItemTemplate>
+                    <DataTemplate x:DataType="viewModels:BandData">
+                        <StackPanel Margin="2" Orientation="Vertical" Background="#FF3364B9" >
+                            <TextBlock Style="{StaticResource ListViewItemTextBlock}"
+                                       Margin="5,5,5,0"
+                                       Text="{x:Bind Name, Mode=OneWay}"/>
+                            <StackPanel Orientation="Horizontal" Width="130">
+                                <TextBlock Style="{StaticResource ListViewItemTextBlock}"
+                                           Foreground="#FF9E0000">&#x2665;</TextBlock>
+                                <TextBlock Text="{x:Bind HrReading, Mode=OneWay}"
+                                           Style="{StaticResource ListViewItemTextBlock}"/>
+                                <TextBlock Style="{StaticResource ListViewItemTextBlock}"
+                                           Margin="5,2,2,2">&#x1f4a7;</TextBlock>
+                                <TextBlock Text="{x:Bind GsrReading, Mode=OneWay}"
+                                           Style="{StaticResource ListViewItemTextBlock}"/>
+                            </StackPanel>
+                        </StackPanel>
+                    </DataTemplate>
+                </GridView.ItemTemplate>
+            </GridView>
+            
+        </Grid>
+
+
+        <!-- Server debug info -->
+        <StackPanel Grid.Row="2" Orientation="Horizontal" Margin="5">
+            <TextBlock Style="{StaticResource HeaderTextBlock}">Debug info</TextBlock>
+            <Button Margin="5,0" Content="Clear"
+                        Click="{x:Bind ServerVM.ClearDebugInfo}"/>
+        </StackPanel>
+        <ScrollViewer Grid.Row="3" Margin="5,0,5,5" Background="LightGray"
+                      HorizontalScrollMode="Disabled"
+                      VerticalScrollMode="Auto">
+            <TextBlock Height="auto"
+                       Text="{x:Bind ServerVM.DebugInfo, Mode=OneWay}"/>
+        </ScrollViewer>
+
+    </Grid>
+</Page>

@@ -1,0 +1,131 @@
+﻿<Page
+    x:Class="BandBridge.Views.MainPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:local="using:BandBridge.Views"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    mc:Ignorable="d" Width="450" MinHeight="500" Height="500">
+    <Page.Resources>
+        <Style x:Key="ServerInfoTextBlock" TargetType="TextBlock">
+            <Setter Property="Margin" Value="5"/>
+            <Setter Property="VerticalAlignment" Value="Center"/>
+        </Style>
+        
+        <Style x:Key="HeaderTextBlock" TargetType="TextBlock" BasedOn="{StaticResource ServerInfoTextBlock}">
+            <Setter Property="FontSize" Value="18"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+        </Style>
+
+        <Style x:Key="ServerInfoTextBox" TargetType="TextBox">
+            <Setter Property="Margin" Value="5"/>
+        </Style>
+
+        <Style x:Key="ServerInfoButton" TargetType="Button">
+            <Setter Property="Margin" Value="5"/>
+            <Setter Property="VerticalAlignment" Value="Center"/>
+            <Setter Property="HorizontalAlignment" Value="Center"/>
+        </Style>
+
+        <Style x:Key="BandInfoButton" TargetType="Button" BasedOn="{StaticResource ServerInfoButton}">
+            <Setter Property="HorizontalAlignment" Value="Left"/>
+        </Style>
+    </Page.Resources>
+
+    <Grid Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="auto"/>
+            <RowDefinition />
+        </Grid.RowDefinitions>
+
+        <!-- Server info & settings -->
+        <Grid Grid.Row="0" Margin="5" Background="#FFAFE2FF">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="auto"/>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="*"/>
+            </Grid.RowDefinitions>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="auto"/>
+                <ColumnDefinition Width="auto"/>
+                <ColumnDefinition/>
+            </Grid.ColumnDefinitions>
+            
+            <TextBlock Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="3"
+                       Style="{StaticResource HeaderTextBlock}">Server info</TextBlock>
+
+            <TextBlock Grid.Row="1" Grid.Column="0"
+                       Style="{StaticResource ServerInfoTextBlock}">Server address:</TextBlock>
+            <TextBlock Grid.Row="1" Grid.Column="1"
+                       Name="ServiceHostName"
+                       Style="{StaticResource ServerInfoTextBlock}"
+                       FontWeight="Bold">(server_address)</TextBlock>
+
+            <TextBlock Grid.Row="2" Grid.Column="0"
+                       Style="{StaticResource ServerInfoTextBlock}">Service port number:</TextBlock>
+            <TextBox Grid.Row="2" Grid.Column="1" Text="port_number"
+                     Style="{StaticResource ServerInfoTextBox}"
+                     Name="ServicePortNumber"/>
+
+            <TextBlock Grid.Row="3" Grid.Column="0"
+                       Style="{StaticResource ServerInfoTextBlock}">Storage items limit:</TextBlock>
+            <TextBox Grid.Row="3" Grid.Column="1" Text="storage_size"
+                     Style="{StaticResource ServerInfoTextBox}"
+                     Name="SensorDataStorageSize"/>
+
+            <StackPanel Grid.Row="1" Grid.RowSpan="3" Grid.Column="2"
+                        VerticalAlignment="Center">
+                <Button Name="StartServerButton" Content="Start Server"
+                        Click="StartServerButton_Click"
+                        Style="{StaticResource ServerInfoButton}"/>
+                <Button Name="StopServerButton" Content="Stop Server"
+                        Click="StopServerButton_Click"
+                        Style="{StaticResource ServerInfoButton}"/>
+            </StackPanel>
+        </Grid>
+
+        <!-- Bands info -->
+        <Grid Grid.Row="1" Margin="5" Background="#FF00A2FF">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="auto"/>
+                <RowDefinition Height="auto"/>
+                <RowDefinition/>
+            </Grid.RowDefinitions>
+            
+            <TextBlock Grid.Row="0"
+                       Style="{StaticResource HeaderTextBlock}">Connected MS Bands</TextBlock>
+
+            <StackPanel Grid.Row="1" Orientation="Vertical">
+                <Button Content="Connect MS Bands"
+                        Style="{StaticResource BandInfoButton}"/>
+                <StackPanel Orientation="Horizontal">
+                    <Button Content="Connect Fake Bands"
+                            Style="{StaticResource BandInfoButton}"/>
+                    <TextBlock Style="{StaticResource ServerInfoTextBlock}">Fake Bands amount:</TextBlock>
+                    <TextBox Style="{StaticResource ServerInfoTextBox}"/>
+                </StackPanel>
+            </StackPanel>
+
+            <ListView Grid.Row="2" x:Name="BandsList"
+                      Margin="5" Background="#99D3D3D3">
+                <ListView.ItemTemplate>
+                    <DataTemplate>
+                        <StackPanel Margin="2" Orientation="Vertical">
+                            <TextBlock/>
+                            <StackPanel Orientation="Horizontal">
+                                <TextBlock Margin="2">&#x2665;</TextBlock>
+                                <TextBlock Margin="2">---</TextBlock>
+                                <TextBlock Margin="5,2,2,2">&#x1f4a7;</TextBlock>
+                                <TextBlock Margin="2">---</TextBlock>
+                            </StackPanel>
+                        </StackPanel>
+                    </DataTemplate>
+                </ListView.ItemTemplate>
+                
+            </ListView>
+        </Grid>
+        
+        
+    </Grid>
+</Page>
