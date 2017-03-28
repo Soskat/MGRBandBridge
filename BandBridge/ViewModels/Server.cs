@@ -270,7 +270,7 @@ namespace BandBridge.ViewModels
             Debug.WriteLine("__Received: " + message);
 
             // Prepare response:
-            ((SensorData)message.Result).Data += 1;
+            //((SensorData)message.Result).Data += 1;
             Message response = message;
             //Message response = PrepareResponseToClient(message);
             byte[] byteData = PacketProtocol.WrapMessage(Message.Serialize(response));

@@ -86,7 +86,10 @@ namespace Communication.Data
         /// <returns></returns>
         public override string ToString()
         {
-            return string.Format("Message: [{0}][{1}] -> {2}", Code, Result, Result.ToString());
+            if (Result != null)
+                return string.Format("Message: [{0}][{1}] -> {2}", Code, Result, Result.ToString());
+            else
+                return string.Format("Message: [{0}][{1}]", Code, Result);
         }
         #endregion
     }
