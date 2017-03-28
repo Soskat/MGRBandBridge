@@ -268,9 +268,11 @@ namespace BandBridge.ViewModels
             await inStream.ReadAsync(receiveBuffer, 0, bufferSize);
             packetizer.DataReceived(receiveBuffer);
             Debug.WriteLine("__Received: " + message);
-            
+
             // Prepare response:
-            Message response = PrepareResponseToClient(message);
+            //((SensorData)message.Result).Data += 1;
+            Message response = message;
+            //Message response = PrepareResponseToClient(message);
             byte[] byteData = PacketProtocol.WrapMessage(Message.Serialize(response));
 
             //Send the response to the remote client.
