@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Windows.Networking;
@@ -81,6 +82,8 @@ namespace BandBridge.ViewModels
         /// </summary>
         private byte[] receiveBuffer;
         #endregion
+
+        private bool disconnectClient = false;
 
         #region Properties
         /// <summary>
@@ -187,14 +190,14 @@ namespace BandBridge.ViewModels
 
             try
             {
-                //Create a StreamSocketListener to start listening for TCP connections:
+                // Create a StreamSocketListener to start listening for TCP connections:
                 if (_ServerSocketListener == null) _ServerSocketListener = new StreamSocketListener();
                 else return;
 
-                ////Hook up an event handler to call when connections are received:
-                _ServerSocketListener.ConnectionReceived += SocketListener_ConnectionReceived;   // -----------------------------------------------
+                // Hook up an event handler to call when connections are received:
+                _ServerSocketListener.ConnectionReceived += SocketListener_ConnectionReceived;
 
-                //Start listening for incoming TCP connections on the specified port:
+                // Start listening for incoming TCP connections on the specified port:
                 await _ServerSocketListener.BindServiceNameAsync(ServicePort);
 
                 IsServerWorking = true;
@@ -246,40 +249,73 @@ namespace BandBridge.ViewModels
         /// <param name="args"></param>
         private async void SocketListener_ConnectionReceived(StreamSocketListener sender, StreamSocketListenerConnectionReceivedEventArgs args)
         {
-            //DebugInfo = "Connection received from " + args.Socket.Information.RemoteAddress;
-            Debug.WriteLine("Connection received from " + args.Socket.Information.RemoteAddress);
-
-
-            PacketProtocol packetizer = new PacketProtocol(2048);
-            packetizer.MessageArrived += receivedMessage =>
+            try
             {
-                Debug.Write(":: Received bytes: " + receivedMessage.Length + "  => ");
-                if(receivedMessage.Length > 0)
+                //DebugInfo = "Connection received from " + args.Socket.Information.RemoteAddress;
+                Debug.WriteLine("Connection received from " + args.Socket.Information.RemoteAddress);
+
+
+                PacketProtocol packetizer = new PacketProtocol(2048);
+                packetizer.MessageArrived += receivedMessage =>
                 {
-                    Debug.WriteLine("deserialize message");
-                    message = Message.Deserialize(receivedMessage);
+                    Debug.Write(":: Received bytes: " + receivedMessage.Length + "  => ");
+                    if (receivedMessage.Length > 0)
+                    {
+                        Debug.WriteLine("deserialize message");
+                        message = Message.Deserialize(receivedMessage);
+                    }
+                    else Debug.WriteLine("keepalive message");
+                };
+
+                while (!disconnectClient)
+                {
+                    //Read data from the remote client.
+                    Stream inStream = args.Socket.InputStream.AsStreamForRead();
+                    await inStream.ReadAsync(receiveBuffer, 0, bufferSize);
+                    packetizer.DataReceived(receiveBuffer);
+                    Debug.WriteLine("__Received: " + message);
+
+                    // Prepare response:
+                    //((SensorData)message.Result).Data += 1;
+                    Message response = message;
+                    //Message response = PrepareResponseToClient(message);
+                    byte[] byteData = PacketProtocol.WrapMessage(Message.Serialize(response));
+
+                    //Send the response to the remote client.
+                    Stream outStream = args.Socket.OutputStream.AsStreamForWrite();
+                    await outStream.WriteAsync(byteData, 0, byteData.Length);
+                    await outStream.FlushAsync();
+                    Debug.WriteLine("__Sent back: " + message);
                 }
-                else Debug.WriteLine("keepalive message");
-            };
+
+                disconnectClient = false;
 
 
-            //Read data from the remote client.
-            Stream inStream = args.Socket.InputStream.AsStreamForRead();
-            await inStream.ReadAsync(receiveBuffer, 0, bufferSize);
-            packetizer.DataReceived(receiveBuffer);
-            Debug.WriteLine("__Received: " + message);
 
-            // Prepare response:
-            //((SensorData)message.Result).Data += 1;
-            Message response = message;
-            //Message response = PrepareResponseToClient(message);
-            byte[] byteData = PacketProtocol.WrapMessage(Message.Serialize(response));
+                ////Read data from the remote client.
+                //Stream inStream = args.Socket.InputStream.AsStreamForRead();
+                //await inStream.ReadAsync(receiveBuffer, 0, bufferSize);
+                //packetizer.DataReceived(receiveBuffer);
+                //Debug.WriteLine("__Received: " + message);
 
-            //Send the response to the remote client.
-            Stream outStream = args.Socket.OutputStream.AsStreamForWrite();
-            await outStream.WriteAsync(byteData, 0, byteData.Length);
-            await outStream.FlushAsync();
-            Debug.WriteLine("__Sent back: " + message);
+                //// Prepare response:
+                ////((SensorData)message.Result).Data += 1;
+                //Message response = message;
+                ////Message response = PrepareResponseToClient(message);
+                //byte[] byteData = PacketProtocol.WrapMessage(Message.Serialize(response));
+
+                ////Send the response to the remote client.
+                //Stream outStream = args.Socket.OutputStream.AsStreamForWrite();
+                //await outStream.WriteAsync(byteData, 0, byteData.Length);
+                //await outStream.FlushAsync();
+                //Debug.WriteLine("__Sent back: " + message);
+
+
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine(ex.Message);
+            }
         }
 
         /// <summary>
@@ -418,7 +454,7 @@ namespace BandBridge.ViewModels
                 // send the list of all connected Bands:
                 case Command.SHOW_ASK:
                     if (_ConnectedBands != null)
-                        return new Message(Command.SHOW_ANS, _ConnectedBands.Keys);
+                        return new Message(Command.SHOW_ANS, _ConnectedBands.Keys.ToList());
                     else
                         return new Message(Command.SHOW_ANS, null);
 
@@ -428,7 +464,7 @@ namespace BandBridge.ViewModels
                     {
                         if (message.Result.GetType() == typeof(string))
                         {
-                            if (_ConnectedBands.ContainsKey((string)message.Result))
+                            if (_ConnectedBands != null && _ConnectedBands.ContainsKey((string)message.Result))
                             {
                                 // prepare data:
                                 int hrAvg = _ConnectedBands[(string)message.Result].HrBuffer.GetAverage();
@@ -439,22 +475,28 @@ namespace BandBridge.ViewModels
                                                        new SensorData(SensorCode.GSR, gsrAvg)
                                                    });
                             }
+                            else return new Message(Command.GET_DATA_ANS, null);
                         }
-
-                        return new Message(Command.GET_DATA_ANS, null);
                     }
-                    break;
+                    return new Message(Command.CTR_MSG, null);
+
+
+                // ---- for testing purposes only -----
+                case Command.CTR_MSG:
+                    if (message.Result != null && (bool)message.Result == true)
+                    {
+                        disconnectClient = true;
+                        return new Message(Command.CTR_MSG, true);
+                    }
+                    return new Message(Command.CTR_MSG, null);
+                // /---- for testing purposes only -----
+
 
                 // wrong message code:
-                default: break;
+                default:
+                    return new Message(Command.CTR_MSG, null);
             }
-
-            return new Message(Command.CTR_MSG, null);
-        }     
+        }
+    
     }
 }
-
-
-
-
-
