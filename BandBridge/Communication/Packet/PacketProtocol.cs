@@ -157,6 +157,12 @@ namespace Communication.Packet
                 {
                     // We've gotten the length buffer
                     int length = BitConverter.ToInt32(this.lengthBuffer, 0);
+                    //Debug.WriteLine("Message length = " + length);
+                    //Debug.WriteLine("lengthBuffer items:");
+                    //foreach(var item in this.lengthBuffer)
+                    //{
+                    //    Debug.Write(item + " | ");
+                    //} Debug.WriteLine("\n----------------------------");
 
                     // Sanity check for length < 0
                     if (length < 0)
@@ -164,7 +170,8 @@ namespace Communication.Packet
 
                     // Another sanity check is needed here for very large packets, to prevent denial-of-service attacks
                     if (this.maxMessageSize > 0 && length > this.maxMessageSize)
-                        throw new System.Net.ProtocolViolationException("Message length " + length.ToString(System.Globalization.CultureInfo.InvariantCulture) + " is larger than maximum message size " + this.maxMessageSize.ToString(System.Globalization.CultureInfo.InvariantCulture));
+                        throw new System.Net.ProtocolViolationException("Message length " + length.ToString(System.Globalization.CultureInfo.InvariantCulture) 
+                                                                        + " is larger than maximum message size " + this.maxMessageSize.ToString(System.Globalization.CultureInfo.InvariantCulture));
 
                     // Zero-length packets are allowed as keepalives
                     if (length == 0)

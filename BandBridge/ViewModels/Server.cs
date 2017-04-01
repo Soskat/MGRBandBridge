@@ -83,8 +83,6 @@ namespace BandBridge.ViewModels
         private byte[] receiveBuffer;
         #endregion
 
-        private bool disconnectClient = false;
-
         #region Properties
         /// <summary>
         /// Local host name.
@@ -267,49 +265,22 @@ namespace BandBridge.ViewModels
                     else Debug.WriteLine("keepalive message");
                 };
 
-                while (!disconnectClient)
-                {
-                    //Read data from the remote client.
-                    Stream inStream = args.Socket.InputStream.AsStreamForRead();
-                    await inStream.ReadAsync(receiveBuffer, 0, bufferSize);
-                    packetizer.DataReceived(receiveBuffer);
-                    Debug.WriteLine("__Received: " + message);
+                //Read data from the remote client.
+                Stream inStream = args.Socket.InputStream.AsStreamForRead();
+                await inStream.ReadAsync(receiveBuffer, 0, bufferSize);
+                packetizer.DataReceived(receiveBuffer);
+                Debug.WriteLine("__Received: " + message);
 
-                    // Prepare response:
-                    //((SensorData)message.Result).Data += 1;
-                    Message response = message;
-                    //Message response = PrepareResponseToClient(message);
-                    byte[] byteData = PacketProtocol.WrapMessage(Message.Serialize(response));
+                // Prepare response:
+                Message response = PrepareResponseToClient(message);
+                byte[] byteData = PacketProtocol.WrapMessage(Message.Serialize(response));
 
-                    //Send the response to the remote client.
-                    Stream outStream = args.Socket.OutputStream.AsStreamForWrite();
-                    await outStream.WriteAsync(byteData, 0, byteData.Length);
-                    await outStream.FlushAsync();
-                    Debug.WriteLine("__Sent back: " + message);
-                }
-
-                disconnectClient = false;
-
-
-
-                ////Read data from the remote client.
-                //Stream inStream = args.Socket.InputStream.AsStreamForRead();
-                //await inStream.ReadAsync(receiveBuffer, 0, bufferSize);
-                //packetizer.DataReceived(receiveBuffer);
-                //Debug.WriteLine("__Received: " + message);
-
-                //// Prepare response:
-                ////((SensorData)message.Result).Data += 1;
-                //Message response = message;
-                ////Message response = PrepareResponseToClient(message);
-                //byte[] byteData = PacketProtocol.WrapMessage(Message.Serialize(response));
-
-                ////Send the response to the remote client.
-                //Stream outStream = args.Socket.OutputStream.AsStreamForWrite();
-                //await outStream.WriteAsync(byteData, 0, byteData.Length);
-                //await outStream.FlushAsync();
-                //Debug.WriteLine("__Sent back: " + message);
-
+                //Send the response to the remote client.
+                Stream outStream = args.Socket.OutputStream.AsStreamForWrite();
+                await outStream.WriteAsync(byteData, 0, byteData.Length);
+                await outStream.FlushAsync();
+                Debug.WriteLine("__Sent back: " + response);
+                Debug.WriteLine("---------------------------------------------------------");
 
             }
             catch (Exception ex)
@@ -454,7 +425,7 @@ namespace BandBridge.ViewModels
                 // send the list of all connected Bands:
                 case Command.SHOW_ASK:
                     if (_ConnectedBands != null)
-                        return new Message(Command.SHOW_ANS, _ConnectedBands.Keys.ToList());
+                        return new Message(Command.SHOW_ANS, _ConnectedBands.Keys.ToArray());
                     else
                         return new Message(Command.SHOW_ANS, null);
 
@@ -479,19 +450,7 @@ namespace BandBridge.ViewModels
                         }
                     }
                     return new Message(Command.CTR_MSG, null);
-
-
-                // ---- for testing purposes only -----
-                case Command.CTR_MSG:
-                    if (message.Result != null && (bool)message.Result == true)
-                    {
-                        disconnectClient = true;
-                        return new Message(Command.CTR_MSG, true);
-                    }
-                    return new Message(Command.CTR_MSG, null);
-                // /---- for testing purposes only -----
-
-
+                    
                 // wrong message code:
                 default:
                     return new Message(Command.CTR_MSG, null);

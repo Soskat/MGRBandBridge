@@ -1,6 +1,6 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Package xmlns="http://schemas.microsoft.com/appx/manifest/foundation/windows10" xmlns:mp="http://schemas.microsoft.com/appx/2014/phone/manifest" xmlns:uap="http://schemas.microsoft.com/appx/manifest/uap/windows10" IgnorableNamespaces="uap mp">
-  <Identity Name="4781961e-bd9e-406d-9518-35d8f596d5a7" Publisher="CN=soska" Version="1.0.7.0" />
+  <Identity Name="4781961e-bd9e-406d-9518-35d8f596d5a7" Publisher="CN=soska" Version="1.0.10.0" />
   <mp:PhoneIdentity PhoneProductId="4781961e-bd9e-406d-9518-35d8f596d5a7" PhonePublisherId="00000000-0000-0000-0000-000000000000" />
   <Properties>
     <DisplayName>BandBridge</DisplayName>
