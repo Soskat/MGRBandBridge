@@ -157,12 +157,6 @@ namespace Communication.Packet
                 {
                     // We've gotten the length buffer
                     int length = BitConverter.ToInt32(this.lengthBuffer, 0);
-                    //Debug.WriteLine("Message length = " + length);
-                    //Debug.WriteLine("lengthBuffer items:");
-                    //foreach(var item in this.lengthBuffer)
-                    //{
-                    //    Debug.Write(item + " | ");
-                    //} Debug.WriteLine("\n----------------------------");
 
                     // Sanity check for length < 0
                     if (length < 0)

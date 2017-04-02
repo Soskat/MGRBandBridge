@@ -110,7 +110,7 @@ class BBTest {
 
     private void Test__SHOW_ANS(){
         Console.WriteLine(">> SHOW_ANS / Result == null ----------------------");
-        Message msg = new Message(Command.GET_DATA_ANS, null);
+        Message msg = new Message(Command.SHOW_ANS, null);
         Console.WriteLine("MSG = " + msg);
         Message resp = SocketClient.StartClient(hostName, servicePort, msg);
         Debug.Assert(resp != null, "Response is null!");
@@ -274,7 +274,7 @@ namespace Communication.Client
                 client.Shutdown(SocketShutdown.Both);
                 client.Close();
 
-                Console.WriteLine("Shotdown the connection");
+                Console.WriteLine("Shutdown the connection");
                 return receivedResponse;
 
             } catch (Exception e) {

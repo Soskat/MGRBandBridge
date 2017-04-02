@@ -172,7 +172,7 @@ namespace BandBridge.ViewModels
                     break;
                 }
             }
-            receiveBuffer = new byte[bufferSize];
+            //receiveBuffer = new byte[bufferSize];
         }
         #endregion
 
@@ -252,6 +252,7 @@ namespace BandBridge.ViewModels
                 //DebugInfo = "Connection received from " + args.Socket.Information.RemoteAddress;
                 Debug.WriteLine("Connection received from " + args.Socket.Information.RemoteAddress);
 
+                receiveBuffer = new byte[bufferSize];
 
                 PacketProtocol packetizer = new PacketProtocol(2048);
                 packetizer.MessageArrived += receivedMessage =>
