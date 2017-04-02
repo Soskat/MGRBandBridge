@@ -70,14 +70,14 @@ namespace Communication.Data
         /// <returns>Deserialized message</returns>
         public static Message Deserialize(byte[] data)
         {
-            Message response = null;
+            Message message = null;
             using (MemoryStream stream = new MemoryStream(data))
             using (XmlDictionaryReader reader = XmlDictionaryReader.CreateBinaryReader(stream, XmlDictionaryReaderQuotas.Max))
             {
                 DataContractSerializer deserializer = new DataContractSerializer(typeof(Message), new Type[] { typeof(SensorData) });
-                response = (Message)deserializer.ReadObject(reader);
+                message = (Message)deserializer.ReadObject(reader);
             }
-            return response;
+            return message;
         }
 
         /// <summary>
