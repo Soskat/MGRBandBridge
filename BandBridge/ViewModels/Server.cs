@@ -25,27 +25,27 @@ namespace BandBridge.ViewModels
         /// <summary>
         /// Local host name.
         /// </summary>
-        private HostName _LocalHost { get; set; }
+        private HostName _LocalHost;
 
         /// <summary>
         /// Service port number written in string.
         /// </summary>
-        private string _ServicePort { get; set; }
+        private string _ServicePort;
 
         /// <summary>
         /// Server <see cref="StreamSocketListener"/> object.
         /// </summary>
-        private StreamSocketListener _ServerSocketListener { get; set; }
+        private StreamSocketListener _ServerSocketListener;
 
         /// <summary>
         /// BandData buffers storage size.
         /// </summary>
-        private int _StorageSize { get; set; }
+        private int _StorageSize;
 
         /// <summary>
         /// Fake Bands amount.
         /// </summary>
-        private int _FakeBandsAmount { get; set; }
+        private int _FakeBandsAmount;
 
         /// <summary>
         /// Server debug info.
@@ -61,7 +61,7 @@ namespace BandBridge.ViewModels
         /// List of connected Bands data.
         /// </summary>
         private ObservableCollection<BandData> _ConnectedBandsCollection;
-
+        
         /// <summary>
         /// Is server working?
         /// </summary>
@@ -268,8 +268,11 @@ namespace BandBridge.ViewModels
 
                 //Read data from the remote client.
                 Stream inStream = args.Socket.InputStream.AsStreamForRead();
-                await inStream.ReadAsync(receiveBuffer, 0, bufferSize);
-                packetizer.DataReceived(receiveBuffer);
+                while (!packetizer.AllBytesReceived)
+                {
+                    await inStream.ReadAsync(receiveBuffer, 0, bufferSize);
+                    packetizer.DataReceived(receiveBuffer);
+                }
                 Debug.WriteLine("__Received: " + message);
 
                 // Prepare response:
@@ -419,6 +422,9 @@ namespace BandBridge.ViewModels
         #endregion
         
         
+
+
+
         private Message PrepareResponseToClient(Message message)
         {
             switch (message.Code)
