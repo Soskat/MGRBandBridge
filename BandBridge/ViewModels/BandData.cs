@@ -83,26 +83,26 @@ namespace BandBridge.ViewModels
             set { SetProperty(_GsrReading, value, () => _GsrReading = value); }
         }
 
-        /// <summary>
-        /// Storage for Heart Rate sensor values.
-        /// </summary>
-        public CircularBuffer HrBuffer
-        {
-            get { return _HrBuffer; }
-            set { SetProperty(_HrBuffer, value, () => _HrBuffer = value); }
-        }
+        ///// <summary>
+        ///// Storage for Heart Rate sensor values.
+        ///// </summary>
+        //public CircularBuffer HrBuffer
+        //{
+        //    get { return _HrBuffer; }
+        //    set { SetProperty(_HrBuffer, value, () => _HrBuffer = value); }
+        //}
 
-        /// <summary>
-        /// Storage for GSR sensor values.
-        /// </summary>
-        public CircularBuffer GsrBuffer
-        {
-            get { return _GsrBuffer; }
-            set { SetProperty(_GsrBuffer, value, () => _GsrBuffer = value); }
-        }
+        ///// <summary>
+        ///// Storage for GSR sensor values.
+        ///// </summary>
+        //public CircularBuffer GsrBuffer
+        //{
+        //    get { return _GsrBuffer; }
+        //    set { SetProperty(_GsrBuffer, value, () => _GsrBuffer = value); }
+        //}
         #endregion
 
-
+        #region Delegates
         /// <summary>
         /// Indicates that new sensor reading has arrived.
         /// </summary>
@@ -110,20 +110,22 @@ namespace BandBridge.ViewModels
         /// <para>This event is invoked from within a call to <see cref="GetHeartRate"/> or <see cref="GetGsr"/>. Handlers for this event should not call in those methods.</para>
         /// </remarks>
         public Action<SensorData> NewSensorData { get; set; }
-
+        #endregion
 
         #region Constructors
         /// <summary>
         /// Creates a new instance of class <see cref="BandData"/>.
         /// </summary>
         /// <param name="bandClient"><see cref="IBandClient"/> object connected with Band device</param>
+        /// <param name="bandName">Band device name</param>
         /// <param name="storageSize">HR and GSR storage size</param>
-        public BandData(IBandClient bandClient, string bandName, int storageSize)
+        //public BandData(IBandClient bandClient, string bandName, int storageSize)
+        public BandData(IBandClient bandClient, string bandName)
         {
             BandClient = bandClient;
             Name = bandName;
-            HrBuffer = new CircularBuffer(storageSize);
-            GsrBuffer = new CircularBuffer(storageSize);
+            //HrBuffer = new CircularBuffer(storageSize);
+            //GsrBuffer = new CircularBuffer(storageSize);
         }
         #endregion
 
@@ -150,7 +152,7 @@ namespace BandBridge.ViewModels
                 await CoreApplication.MainView.CoreWindow.Dispatcher.RunAsync(CoreDispatcherPriority.Normal, () =>
                  {
                      HrReading = args.SensorReading.HeartRate;
-                     HrBuffer.Add(args.SensorReading.HeartRate);
+                     //HrBuffer.Add(args.SensorReading.HeartRate);
                  });
             };
             // start the Heartrate sensor:
@@ -186,7 +188,7 @@ namespace BandBridge.ViewModels
                 await CoreApplication.MainView.CoreWindow.Dispatcher.RunAsync(CoreDispatcherPriority.Normal, () =>
                 {
                     GsrReading = args.SensorReading.Resistance;
-                    GsrBuffer.Add(args.SensorReading.Resistance);
+                    //GsrBuffer.Add(args.SensorReading.Resistance);
                 });
             };
             // start the Gsr sensor:

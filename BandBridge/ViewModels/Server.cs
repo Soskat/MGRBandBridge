@@ -38,10 +38,10 @@ namespace BandBridge.ViewModels
         /// </summary>
         private StreamSocketListener _ServerSocketListener;
 
-        /// <summary>
-        /// BandData buffers storage size.
-        /// </summary>
-        private int _StorageSize;
+        ///// <summary>
+        ///// BandData buffers storage size.
+        ///// </summary>
+        //private int _StorageSize;
 
         /// <summary>
         /// Fake Bands amount.
@@ -54,7 +54,7 @@ namespace BandBridge.ViewModels
         private StringBuilder _DebugInfo;
 
         /// <summary>
-        /// List of connected Band devices.
+        /// Dictionary of connected Band devices.
         /// </summary>
         private Dictionary<string, BandData> _ConnectedBands;
 
@@ -62,7 +62,12 @@ namespace BandBridge.ViewModels
         /// List of connected Bands data.
         /// </summary>
         private ObservableCollection<BandData> _ConnectedBandsCollection;
-        
+
+        /// <summary>
+        /// Dictionary of client-Band pairs.
+        /// </summary>
+        private Dictionary<string, ClientInfo> clientBandPairs;
+
         /// <summary>
         /// Is server working?
         /// </summary>
@@ -83,11 +88,7 @@ namespace BandBridge.ViewModels
         /// </summary>
         private byte[] receiveBuffer;
         #endregion
-
-
-        private Dictionary<string, ClientInfo> clientBandPairs;
-
-
+        
         #region Properties
         /// <summary>
         /// Local host name.
@@ -107,14 +108,14 @@ namespace BandBridge.ViewModels
             set { SetProperty(_ServicePort, value, () => _ServicePort = value); }
         }
 
-        /// <summary>
-        /// BandData buffers storage size.
-        /// </summary>
-        public int StorageSize
-        {
-            get { return _StorageSize; }
-            set { SetProperty(_StorageSize, value, () => _StorageSize = value); }
-        }
+        ///// <summary>
+        ///// BandData buffers storage size.
+        ///// </summary>
+        //public int StorageSize
+        //{
+        //    get { return _StorageSize; }
+        //    set { SetProperty(_StorageSize, value, () => _StorageSize = value); }
+        //}
 
         /// <summary>
         /// Fake Bands amount.
@@ -165,10 +166,11 @@ namespace BandBridge.ViewModels
         public Server(string servicePort)
         {
             ServicePort = servicePort;
-            StorageSize = 30;
+            //StorageSize = 30;
             FakeBandsAmount = 6;
             IsServerWorking = false;
             _DebugInfo = new StringBuilder();
+            // get host's IPv4 address:
             foreach (HostName localHostName in NetworkInformation.GetHostNames())
             {
                 if (localHostName.IPInformation != null && localHostName.Type == HostNameType.Ipv4)
@@ -177,7 +179,6 @@ namespace BandBridge.ViewModels
                     break;
                 }
             }
-            //receiveBuffer = new byte[bufferSize];
         }
         #endregion
 
@@ -235,13 +236,13 @@ namespace BandBridge.ViewModels
 
                     IsServerWorking = false;
                 }
-                //DebugInfo = ">> Closing the server...";
-                Debug.WriteLine(">> Closing the server...");
+                DebugInfo = ">> Server closed...";
+                Debug.WriteLine(">> Server closed...");
             }
             catch (Exception e)
             {
-                //DebugInfo = ">> Exception in StartServer(): " + e.Message;
-                Debug.WriteLine(">> Exception in StartServer(): " + e.Message);
+                DebugInfo = ">> Exception in StopServer(): " + e.Message;
+                Debug.WriteLine(">> Exception in StopServer(): " + e.Message);
             }
         }
 
@@ -254,7 +255,6 @@ namespace BandBridge.ViewModels
         {
             try
             {
-                //DebugInfo = "Connection received from " + args.Socket.Information.RemoteAddress;
                 Debug.WriteLine("Connection received from " + args.Socket.Information.RemoteAddress);
 
                 receiveBuffer = new byte[bufferSize];
@@ -298,12 +298,16 @@ namespace BandBridge.ViewModels
             }
         }
 
-
-
+        /// <summary>
+        /// Sends a message to specified remote host.
+        /// </summary>
+        /// <param name="clientInfo">Remote host's info</param>
+        /// <param name="message">Message to send</param>
         private async void SendDataToPairedClient(ClientInfo clientInfo, Message message)
         {
             try
             {
+                // make sure if clientInfo exists:
                 if (clientInfo == null)
                     return;
 
@@ -336,21 +340,18 @@ namespace BandBridge.ViewModels
         /// </summary>
         public async Task GetMSBandDevices()
         {
-            //DebugInfo = ">> Get MS Band devices...";
             Debug.WriteLine(">> Get MS Band devices...");
 
             IBandClientManager clientManager = BandClientManager.Instance;
             IBandInfo[] pairedBands = await clientManager.GetBandsAsync();
 
-            // check if _ConnectedBands and clientBandPairs dictionaries exist:
+            // make sure that _ConnectedBands dictionary exists:
             if (_ConnectedBands == null) _ConnectedBands = new Dictionary<string, BandData>();
-            if (clientBandPairs == null) clientBandPairs = new Dictionary<string, ClientInfo>();
 
             // deal with all connected Band devices:
             if (pairedBands.Length > 0)
             {
                 Dictionary<string, BandData> tempCB = new Dictionary<string, BandData>();
-                Dictionary<string, ClientInfo> tempCBP = new Dictionary<string, ClientInfo>();
 
                 // keep existing BandData from previously connected Band devices untouched:
                 foreach (KeyValuePair<string, BandData> kvp in _ConnectedBands)
@@ -360,7 +361,6 @@ namespace BandBridge.ViewModels
                         if (pairedBands[i] != null && kvp.Key == pairedBands[i].Name)
                         {
                             tempCB.Add(kvp.Key, kvp.Value);
-                            tempCBP.Add(kvp.Key, clientBandPairs[kvp.Key]);
                             pairedBands[i] = null;
                             break;
                         }
@@ -375,17 +375,10 @@ namespace BandBridge.ViewModels
                         var bandClient = await clientManager.ConnectAsync(pairedBands[i]);
                         if (bandClient != null)
                         {
-                            BandData bandData = new BandData(bandClient, pairedBands[i].Name, StorageSize);
+                            // add new Band to collection:
+                            BandData bandData = new BandData(bandClient, pairedBands[i].Name);
+                            //BandData bandData = new BandData(bandClient, pairedBands[i].Name, StorageSize);
                             tempCB.Add(pairedBands[i].Name, bandData);
-
-                            // add Band to client-Band pairs temporaty dictionary:
-                            tempCBP.Add(bandData.Name, null);
-                            bandData.NewSensorData += newReading =>
-                            {
-                                Message msg = new Message(MessageCode.BAND_DATA, newReading);
-                                SendDataToPairedClient(tempCBP[bandData.Name], msg);
-                            };
-
                             // starts reading sensor data:
                             await bandData.GetHeartRate();
                             await bandData.GetGsr();
@@ -395,18 +388,16 @@ namespace BandBridge.ViewModels
                 // update _ConnectedBands dictionary:
                 _ConnectedBands.Clear();
                 _ConnectedBands = tempCB;
-                // update clientBandPairs dictionary:
-                clientBandPairs.Clear();
-                clientBandPairs = tempCBP;
             }
             else
             {
-                //DebugInfo = ">> No Bands found";
                 Debug.WriteLine(">> No Bands found");
             }
 
             // update ObservableCollection of connected Bands:
             SetupBandsListView();
+            // update client-Bands pairs list:
+            UpdateClientBandPairsList();
         }
 
         /// <summary>
@@ -414,7 +405,6 @@ namespace BandBridge.ViewModels
         /// </summary>
         public async Task GetFakeBands()
         {
-            //DebugInfo = ">> Get Fake Bands...";
             Debug.WriteLine(">> Get Fake Bands...");
 
             List<IBandInfo> fakeBands = new List<IBandInfo>();
@@ -438,38 +428,27 @@ namespace BandBridge.ViewModels
                 }
                 _ConnectedBands.Clear();
             }
-            // clear clientBandPairs dictionary:
-            if (clientBandPairs == null) clientBandPairs = new Dictionary<string, ClientInfo>();
-            else clientBandPairs.Clear();
 
-            Dictionary<string, ClientInfo> tempCBP = new Dictionary<string, ClientInfo>();
             // connect new fake Bands:
             foreach (IBandInfo band in pairedBands)
             {
                 var bandClient = await clientManager.ConnectAsync(band);
                 if (bandClient != null)
                 {
-                    BandData bandData = new BandData(bandClient, band.Name, StorageSize);
+                    // add new Band to collection:
+                    BandData bandData = new BandData(bandClient, band.Name);
+                    //BandData bandData = new BandData(bandClient, band.Name, StorageSize);
                     _ConnectedBands.Add(band.Name, bandData);
-
-                    // add Band to client-Band pairs temporaty dictionary:
-                    tempCBP.Add(band.Name, null);
-                    bandData.NewSensorData += newReading =>
-                    {
-                        Message msg = new Message(MessageCode.BAND_DATA, newReading);
-                        SendDataToPairedClient(tempCBP[band.Name], msg);
-                    };
-
                     // starts reading sensor data:
                     await bandData.GetHeartRate();
                     await bandData.GetGsr();
                 }
             }
-            // update client-Bands pairs list:
-            clientBandPairs = tempCBP;
 
             // update ObservableCollection of connected Bands:
             SetupBandsListView();
+            // update client-Bands pairs list:
+            UpdateClientBandPairsList();
         }
         
         /// <summary>
@@ -477,10 +456,12 @@ namespace BandBridge.ViewModels
         /// </summary>
         private void SetupBandsListView()
         {
+            // make surte that ConnectedBandsCollection exists:
             if (ConnectedBandsCollection == null)
                 ConnectedBandsCollection = new ObservableCollection<BandData>();
             else
                 ConnectedBandsCollection.Clear();
+
             // update ObservableCollection:
             foreach (BandData bandData in _ConnectedBands.Values)
             {
@@ -489,29 +470,39 @@ namespace BandBridge.ViewModels
         }
 
         /// <summary>
-        /// Updates list that contains client-Band pairs.
+        /// Updates dictionary that contains client-Band pairs.
         /// </summary>
         private void UpdateClientBandPairsList()
         {
+            // make sure that clientBandPairs dictionary exists:
             if (clientBandPairs == null)
                 clientBandPairs = new Dictionary<string, ClientInfo>();
 
             Dictionary<string, ClientInfo> temp = new Dictionary<string, ClientInfo>();
 
             // check if there are already some Bands which are paired with some remote clients:
-            foreach(var key in _ConnectedBands.Keys.ToList())
+            foreach (var kvp in _ConnectedBands)
             {
-                if (clientBandPairs.ContainsKey(key))
-                    temp.Add(key, clientBandPairs[key]);
+                if (clientBandPairs.ContainsKey(kvp.Key))
+                {
+                    temp.Add(kvp.Key, clientBandPairs[kvp.Key]);
+                }
                 else
-                    temp.Add(key, null);
+                {
+                    temp.Add(kvp.Key, null);
+                    // set up actions on new reading arrived:
+                    kvp.Value.NewSensorData += newReading =>
+                    {
+                        Message msg = new Message(MessageCode.BAND_DATA, newReading);
+                        SendDataToPairedClient(temp[kvp.Key], msg);
+                    };
+                }
             }
 
             // update client-Bands pairs list:
             clientBandPairs = temp;
         }
-
-
+        
         /// <summary>
         /// Clears all debug info.
         /// </summary>

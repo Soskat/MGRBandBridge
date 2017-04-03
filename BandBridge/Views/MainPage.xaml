@@ -81,11 +81,13 @@
                      Text="{x:Bind ServerVM.ServicePort, Mode=TwoWay}"
                      Style="{StaticResource ServerInfoTextBox}"/>
 
+            <!--
             <TextBlock Grid.Row="3" Grid.Column="0"
                        Style="{StaticResource ServerInfoTextBlock}">Storage items limit:</TextBlock>
             <TextBox Grid.Row="3" Grid.Column="1"
                      Text="{x:Bind ServerVM.StorageSize, Mode=TwoWay}"
                      Style="{StaticResource ServerInfoTextBox}"/>
+            -->
 
             <StackPanel Grid.Row="1" Grid.RowSpan="3" Grid.Column="2"
                         VerticalAlignment="Center">
