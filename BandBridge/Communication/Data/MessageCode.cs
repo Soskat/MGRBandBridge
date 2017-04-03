@@ -10,6 +10,6 @@
         CTR_MSG,                    // control message
         PAIR_ASK, PAIR_ANS,         // for pairing remote client with specified Band
         BAND_DATA,                  // for sending Band data package
-        FREE_ASK                    // for freeing paired Band
+        FREE_ASK, FREE_ANS          // for freeing paired Band
     }
 }

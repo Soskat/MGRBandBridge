@@ -103,6 +103,7 @@
     <Compile Include="Communication\Data\SensorCode.cs" />
     <Compile Include="Converters\InverseBooleanConverter.cs" />
     <Compile Include="Communication\Packet\PacketProtocol.cs" />
+    <Compile Include="Data\ClientInfo.cs" />
     <Compile Include="ViewModels\BandData.cs" />
     <Compile Include="Data\CircularBuffer.cs" />
     <Compile Include="ViewModels\Server.cs" />

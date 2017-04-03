@@ -1,4 +1,5 @@
-﻿using Communication.Data;
+﻿using BandBridge.Data;
+using Communication.Data;
 using Communication.Packet;
 using FakeBand.Fakes;
 using Microsoft.Band;
@@ -82,6 +83,10 @@ namespace BandBridge.ViewModels
         /// </summary>
         private byte[] receiveBuffer;
         #endregion
+
+
+        private Dictionary<string, ClientInfo> clientBandPairs;
+
 
         #region Properties
         /// <summary>
@@ -351,6 +356,8 @@ namespace BandBridge.ViewModels
 
             // update ObservableCollection of connected Bands:
             SetupBandsListView();
+            // update client-Bands pairs list:
+            UpdateClientBandPairsList();
         }
 
         /// <summary>
@@ -396,6 +403,8 @@ namespace BandBridge.ViewModels
 
             // update ObservableCollection of connected Bands:
             SetupBandsListView();
+            // update client-Bands pairs list:
+            UpdateClientBandPairsList();
         }
         
         /// <summary>
@@ -411,6 +420,29 @@ namespace BandBridge.ViewModels
                 ConnectedBandsCollection.Add(bandData);
             }
         }
+
+        /// <summary>
+        /// Updates list that contains client-Band pairs.
+        /// </summary>
+        private void UpdateClientBandPairsList()
+        {
+            if (clientBandPairs == null) clientBandPairs = new Dictionary<string, ClientInfo>();
+
+            Dictionary<string, ClientInfo> temp = new Dictionary<string, ClientInfo>();
+
+            // check if there are already some Bands which are paired with some remote clients:
+            foreach(var key in _ConnectedBands.Keys.ToList())
+            {
+                if (clientBandPairs.ContainsKey(key))
+                    temp.Add(key, clientBandPairs[key]);
+                else
+                    temp.Add(key, null);
+            }
+
+            // update client-Bands pairs list:
+            clientBandPairs = temp;
+        }
+
 
         /// <summary>
         /// Clears all debug info.
@@ -436,28 +468,58 @@ namespace BandBridge.ViewModels
                     else
                         return new Message(MessageCode.SHOW_ANS, null);
 
-                // send data from specified connected Band:
-                case MessageCode.GET_DATA_ASK:
-                    if (message.Result != null)
+                // pair with specified Band request from connected client:
+                case MessageCode.PAIR_ASK:
+                    if(message.Result != null && message.Result.GetType() == typeof(PairRequest))
                     {
-                        if (message.Result.GetType() == typeof(string))
+                        if (clientBandPairs.ContainsKey(((PairRequest)message.Result).BandName))
                         {
-                            if (_ConnectedBands != null && _ConnectedBands.ContainsKey((string)message.Result))
-                            {
-                                // prepare data:
-                                int hrAvg = _ConnectedBands[(string)message.Result].HrBuffer.GetAverage();
-                                int gsrAvg = _ConnectedBands[(string)message.Result].GsrBuffer.GetAverage();
-                                return new Message(MessageCode.GET_DATA_ANS,
-                                                   new SensorData[] {
-                                                       new SensorData(SensorCode.HR, hrAvg),
-                                                       new SensorData(SensorCode.GSR, gsrAvg)
-                                                   });
-                            }
-                            else return new Message(MessageCode.GET_DATA_ANS, null);
+                            ClientInfo clientInfo = new ClientInfo(
+                                                                   ((PairRequest)message.Result).ClientAddress,
+                                                                   ((PairRequest)message.Result).OpenPort
+                                                                  );
+                            clientBandPairs.Add(((PairRequest)message.Result).BandName, clientInfo);
+                            return new Message(MessageCode.PAIR_ANS, true);
                         }
+                        return new Message(MessageCode.PAIR_ANS, false);
                     }
                     return new Message(MessageCode.CTR_MSG, null);
-                    
+
+                // free paired Band request from connected client:
+                case MessageCode.FREE_ASK:
+                    if(message.Result != null && message.Result.GetType() == typeof(string))
+                    {
+                        if (clientBandPairs.ContainsKey((string)message.Result))
+                        {
+                            clientBandPairs[(string)message.Result].ClientAddress = null;
+                        }
+                        return new Message(MessageCode.FREE_ANS, null);
+                    }
+                    return new Message(MessageCode.CTR_MSG, null);
+
+                //// send data from specified connected Band:
+                //case MessageCode.GET_DATA_ASK:
+                //    if (message.Result != null)
+                //    {
+                //        if (message.Result.GetType() == typeof(string))
+                //        {
+                //            if (_ConnectedBands != null && _ConnectedBands.ContainsKey((string)message.Result))
+                //            {
+                //                // prepare data:
+                //                int hrAvg = _ConnectedBands[(string)message.Result].HrBuffer.GetAverage();
+                //                int gsrAvg = _ConnectedBands[(string)message.Result].GsrBuffer.GetAverage();
+                //                return new Message(MessageCode.GET_DATA_ANS,
+                //                                   new SensorData[] {
+                //                                       new SensorData(SensorCode.HR, hrAvg),
+                //                                       new SensorData(SensorCode.GSR, gsrAvg)
+                //                                   });
+                //            }
+                //            else return new Message(MessageCode.GET_DATA_ANS, null);
+                //        }
+                //    }
+                //    return new Message(MessageCode.CTR_MSG, null);
+
+
                 // wrong message code:
                 default:
                     return new Message(MessageCode.CTR_MSG, null);
