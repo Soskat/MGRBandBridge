@@ -424,14 +424,14 @@ namespace BandBridge.ViewModels
             switch (message.Code)
             {
                 // send the list of all connected Bands:
-                case Command.SHOW_ASK:
+                case MessageCode.SHOW_ASK:
                     if (_ConnectedBands != null)
-                        return new Message(Command.SHOW_ANS, _ConnectedBands.Keys.ToArray());
+                        return new Message(MessageCode.SHOW_ANS, _ConnectedBands.Keys.ToArray());
                     else
-                        return new Message(Command.SHOW_ANS, null);
+                        return new Message(MessageCode.SHOW_ANS, null);
 
                 // send data from specified connected Band:
-                case Command.GET_DATA_ASK:
+                case MessageCode.GET_DATA_ASK:
                     if (message.Result != null)
                     {
                         if (message.Result.GetType() == typeof(string))
@@ -441,20 +441,20 @@ namespace BandBridge.ViewModels
                                 // prepare data:
                                 int hrAvg = _ConnectedBands[(string)message.Result].HrBuffer.GetAverage();
                                 int gsrAvg = _ConnectedBands[(string)message.Result].GsrBuffer.GetAverage();
-                                return new Message(Command.GET_DATA_ANS,
+                                return new Message(MessageCode.GET_DATA_ANS,
                                                    new SensorData[] {
                                                        new SensorData(SensorCode.HR, hrAvg),
                                                        new SensorData(SensorCode.GSR, gsrAvg)
                                                    });
                             }
-                            else return new Message(Command.GET_DATA_ANS, null);
+                            else return new Message(MessageCode.GET_DATA_ANS, null);
                         }
                     }
-                    return new Message(Command.CTR_MSG, null);
+                    return new Message(MessageCode.CTR_MSG, null);
                     
                 // wrong message code:
                 default:
-                    return new Message(Command.CTR_MSG, null);
+                    return new Message(MessageCode.CTR_MSG, null);
             }
         }
     

@@ -3,11 +3,6 @@
 namespace Communication.Data
 {
     /// <summary>
-    /// Microsoft Band sensor type code.
-    /// </summary>
-    public enum SensorCode : byte { HR, GSR }
-
-    /// <summary>
     /// Class that encapsulates specific value of Microsoft Band sensor reading.
     /// </summary>
     [DataContract]

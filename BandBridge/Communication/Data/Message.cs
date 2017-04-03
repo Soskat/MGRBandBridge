@@ -6,11 +6,6 @@ using System.Xml;
 namespace Communication.Data
 {
     /// <summary>
-    /// Message commands type codes.
-    /// </summary>
-    public enum Command : byte { CTR_MSG, SHOW_ASK, SHOW_ANS, GET_DATA_ASK, GET_DATA_ANS }
-
-    /// <summary>
     /// Class that represents a message structure used in communication with BandBridge server.
     /// </summary>
     [DataContract]
@@ -21,7 +16,7 @@ namespace Communication.Data
         /// Message command type code.
         /// </summary>
         [DataMember]
-        public Command Code { get; set; }
+        public MessageCode Code { get; set; }
         
         /// <summary>
         /// Message result object.
@@ -36,7 +31,7 @@ namespace Communication.Data
         /// </summary>
         /// <param name="code">Message command type code</param>
         /// <param name="result">Message result object</param>
-        public Message(Command code, object result)
+        public Message(MessageCode code, object result)
         {
             Code = code;
             Result = result;
