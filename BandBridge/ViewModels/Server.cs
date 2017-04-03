@@ -318,7 +318,7 @@ namespace BandBridge.ViewModels
                 byte[] byteData = PacketProtocol.WrapMessage(Message.Serialize(message));
 
                 // Connect to remote host:
-                await socket.ConnectAsync(clientInfo.ClientAddress, clientInfo.Port.ToString());
+                await socket.ConnectAsync(new HostName(clientInfo.ClientAddress), clientInfo.Port.ToString());
 
                 // Write data to the remote server.
                 Stream outStream = socket.OutputStream.AsStreamForWrite();

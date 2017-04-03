@@ -1,6 +1,4 @@
-﻿using Windows.Networking;
-
-namespace Communication.Data
+﻿namespace Communication.Data
 {
     /// <summary>
     /// Contains all data required to paired remote client and connected Band.
@@ -11,7 +9,7 @@ namespace Communication.Data
         /// <summary>
         /// Client's address.
         /// </summary>
-        public HostName ClientAddress { get; set; }
+        public string ClientAddress { get; set; }
 
         /// <summary>
         /// Number of client's open port listening for incoming Band data.
@@ -31,7 +29,7 @@ namespace Communication.Data
         /// <param name="clientIP">client's IP address</param>
         /// <param name="openPort">client's open port number</param>
         /// <param name="bandName">client's choosen Band name</param>
-        public PairRequest(HostName clientIP, int openPort, string bandName)
+        public PairRequest(string clientIP, int openPort, string bandName)
         {
             ClientAddress = clientIP;
             OpenPort = openPort;

@@ -1,6 +1,4 @@
-﻿using Windows.Networking;
-
-namespace BandBridge.Data
+﻿namespace BandBridge.Data
 {
     /// <summary>
     /// Contains all info required to connect remote client
@@ -11,7 +9,7 @@ namespace BandBridge.Data
         /// <summary>
         /// Client's address.
         /// </summary>
-        public HostName ClientAddress { get; set; }
+        public string ClientAddress { get; set; }
 
         /// <summary>
         /// Client's open port.
@@ -25,7 +23,7 @@ namespace BandBridge.Data
         /// </summary>
         /// <param name="clientIP">client's IP address</param>
         /// <param name="port">client's open port</param>
-        public ClientInfo(HostName clientIP, int port)
+        public ClientInfo(string clientIP, int port)
         {
             ClientAddress = clientIP;
             Port = port;
