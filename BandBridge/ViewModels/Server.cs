@@ -298,6 +298,39 @@ namespace BandBridge.ViewModels
             }
         }
 
+
+
+        private async void SendDataToPairedClient(ClientInfo clientInfo, Message message)
+        {
+            try
+            {
+                if (clientInfo == null)
+                    return;
+
+                // Create the StreamSocket and establish a connection to remote server:
+                StreamSocket socket = new StreamSocket();
+
+                // Prepare data for sending:
+                byte[] byteData = PacketProtocol.WrapMessage(Message.Serialize(message));
+
+                // Connect to remote host:
+                await socket.ConnectAsync(clientInfo.ClientAddress, clientInfo.Port.ToString());
+
+                // Write data to the remote server.
+                Stream outStream = socket.OutputStream.AsStreamForWrite();
+                await outStream.WriteAsync(byteData, 0, byteData.Length);
+                await outStream.FlushAsync();
+
+                Debug.WriteLine(string.Format("Send {0} to {1}:{2}", message, clientInfo.ClientAddress, clientInfo.Port));
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine(ex.Message);
+            }
+        }
+
+
+
         /// <summary>
         /// Gets MS Band devices connected to local computer.
         /// </summary>
@@ -309,26 +342,31 @@ namespace BandBridge.ViewModels
             IBandClientManager clientManager = BandClientManager.Instance;
             IBandInfo[] pairedBands = await clientManager.GetBandsAsync();
 
+            // check if _ConnectedBands and clientBandPairs dictionaries exist:
             if (_ConnectedBands == null) _ConnectedBands = new Dictionary<string, BandData>();
+            if (clientBandPairs == null) clientBandPairs = new Dictionary<string, ClientInfo>();
 
+            // deal with all connected Band devices:
             if (pairedBands.Length > 0)
             {
-                Dictionary<string, BandData> tempDic = new Dictionary<string, BandData>();
+                Dictionary<string, BandData> tempCB = new Dictionary<string, BandData>();
+                Dictionary<string, ClientInfo> tempCBP = new Dictionary<string, ClientInfo>();
 
                 // keep existing BandData from previously connected Band devices untouched:
                 foreach (KeyValuePair<string, BandData> kvp in _ConnectedBands)
                 {
                     for (int i = 0; i < pairedBands.Length; i++)
                     {
-                        if (pairedBands[i] != null &&
-                           kvp.Key == pairedBands[i].Name)
+                        if (pairedBands[i] != null && kvp.Key == pairedBands[i].Name)
                         {
-                            tempDic.Add(kvp.Key, kvp.Value);
+                            tempCB.Add(kvp.Key, kvp.Value);
+                            tempCBP.Add(kvp.Key, clientBandPairs[kvp.Key]);
                             pairedBands[i] = null;
                             break;
                         }
                     }
                 }
+
                 // add new BandData from recently connected Band devices:
                 for (int i = 0; i < pairedBands.Length; i++)
                 {
@@ -338,15 +376,28 @@ namespace BandBridge.ViewModels
                         if (bandClient != null)
                         {
                             BandData bandData = new BandData(bandClient, pairedBands[i].Name, StorageSize);
-                            tempDic.Add(pairedBands[i].Name, bandData);
+                            tempCB.Add(pairedBands[i].Name, bandData);
+
+                            // add Band to client-Band pairs temporaty dictionary:
+                            tempCBP.Add(bandData.Name, null);
+                            bandData.NewSensorData += newReading =>
+                            {
+                                Message msg = new Message(MessageCode.BAND_DATA, newReading);
+                                SendDataToPairedClient(tempCBP[bandData.Name], msg);
+                            };
+
+                            // starts reading sensor data:
                             await bandData.GetHeartRate();
                             await bandData.GetGsr();
                         }
                     }
                 }
-                // update ConnectedBands dictionary:
+                // update _ConnectedBands dictionary:
                 _ConnectedBands.Clear();
-                _ConnectedBands = tempDic;
+                _ConnectedBands = tempCB;
+                // update clientBandPairs dictionary:
+                clientBandPairs.Clear();
+                clientBandPairs = tempCBP;
             }
             else
             {
@@ -356,8 +407,6 @@ namespace BandBridge.ViewModels
 
             // update ObservableCollection of connected Bands:
             SetupBandsListView();
-            // update client-Bands pairs list:
-            UpdateClientBandPairsList();
         }
 
         /// <summary>
@@ -378,6 +427,7 @@ namespace BandBridge.ViewModels
             IBandClientManager clientManager = FakeBandClientManager.Instance;
             IBandInfo[] pairedBands = await clientManager.GetBandsAsync();
 
+            // clear _ConnectedBands dictionary:
             if (_ConnectedBands == null) _ConnectedBands = new Dictionary<string, BandData>();
             else
             {
@@ -388,7 +438,12 @@ namespace BandBridge.ViewModels
                 }
                 _ConnectedBands.Clear();
             }
+            // clear clientBandPairs dictionary:
+            if (clientBandPairs == null) clientBandPairs = new Dictionary<string, ClientInfo>();
+            else clientBandPairs.Clear();
 
+            Dictionary<string, ClientInfo> tempCBP = new Dictionary<string, ClientInfo>();
+            // connect new fake Bands:
             foreach (IBandInfo band in pairedBands)
             {
                 var bandClient = await clientManager.ConnectAsync(band);
@@ -396,15 +451,25 @@ namespace BandBridge.ViewModels
                 {
                     BandData bandData = new BandData(bandClient, band.Name, StorageSize);
                     _ConnectedBands.Add(band.Name, bandData);
+
+                    // add Band to client-Band pairs temporaty dictionary:
+                    tempCBP.Add(band.Name, null);
+                    bandData.NewSensorData += newReading =>
+                    {
+                        Message msg = new Message(MessageCode.BAND_DATA, newReading);
+                        SendDataToPairedClient(tempCBP[band.Name], msg);
+                    };
+
+                    // starts reading sensor data:
                     await bandData.GetHeartRate();
                     await bandData.GetGsr();
                 }
             }
+            // update client-Bands pairs list:
+            clientBandPairs = tempCBP;
 
             // update ObservableCollection of connected Bands:
             SetupBandsListView();
-            // update client-Bands pairs list:
-            UpdateClientBandPairsList();
         }
         
         /// <summary>
@@ -412,8 +477,10 @@ namespace BandBridge.ViewModels
         /// </summary>
         private void SetupBandsListView()
         {
-            if(ConnectedBandsCollection == null) ConnectedBandsCollection = new ObservableCollection<BandData>();
-            else ConnectedBandsCollection.Clear();
+            if (ConnectedBandsCollection == null)
+                ConnectedBandsCollection = new ObservableCollection<BandData>();
+            else
+                ConnectedBandsCollection.Clear();
             // update ObservableCollection:
             foreach (BandData bandData in _ConnectedBands.Values)
             {
@@ -426,7 +493,8 @@ namespace BandBridge.ViewModels
         /// </summary>
         private void UpdateClientBandPairsList()
         {
-            if (clientBandPairs == null) clientBandPairs = new Dictionary<string, ClientInfo>();
+            if (clientBandPairs == null)
+                clientBandPairs = new Dictionary<string, ClientInfo>();
 
             Dictionary<string, ClientInfo> temp = new Dictionary<string, ClientInfo>();
 

@@ -1,4 +1,5 @@
 ﻿using BandBridge.Data;
+using Communication.Data;
 using Microsoft.Band;
 using System;
 using System.Diagnostics;
@@ -101,6 +102,16 @@ namespace BandBridge.ViewModels
         }
         #endregion
 
+
+        /// <summary>
+        /// Indicates that new sensor reading has arrived.
+        /// </summary>
+        /// <remarks>
+        /// <para>This event is invoked from within a call to <see cref="GetHeartRate"/> or <see cref="GetGsr"/>. Handlers for this event should not call in those methods.</para>
+        /// </remarks>
+        public Action<SensorData> NewSensorData { get; set; }
+
+
         #region Constructors
         /// <summary>
         /// Creates a new instance of class <see cref="BandData"/>.
@@ -131,6 +142,11 @@ namespace BandBridge.ViewModels
             // hook up to the Heartrate sensor ReadingChanged event
             BandClient.SensorManager.HeartRate.ReadingChanged += async (sender, args) =>
             {
+                // we've gotten new reading from sensor:
+                if (NewSensorData != null)
+                    NewSensorData(new SensorData(SensorCode.HR, args.SensorReading.HeartRate));
+
+                // update app GUI info:
                 await CoreApplication.MainView.CoreWindow.Dispatcher.RunAsync(CoreDispatcherPriority.Normal, () =>
                  {
                      HrReading = args.SensorReading.HeartRate;
@@ -162,6 +178,11 @@ namespace BandBridge.ViewModels
             // hook up to the Gsr sensor ReadingChanged event:
             BandClient.SensorManager.Gsr.ReadingChanged += async (sender, args) =>
             {
+                // we've gotten new reading from sensor:
+                if (NewSensorData != null)
+                    NewSensorData(new SensorData(SensorCode.GSR, args.SensorReading.Resistance));
+
+                // update app GUI info:
                 await CoreApplication.MainView.CoreWindow.Dispatcher.RunAsync(CoreDispatcherPriority.Normal, () =>
                 {
                     GsrReading = args.SensorReading.Resistance;
