@@ -267,8 +267,9 @@ namespace BandBridge.ViewModels
                     {
                         Debug.WriteLine("deserialize message");
                         message = Message.Deserialize(receivedMessage);
+                        Debug.WriteLine("Received: " + message);
                     }
-                    else Debug.WriteLine("keepalive message");
+                    //else Debug.WriteLine("keepalive message");
                 };
 
                 //Read data from the remote client.
@@ -512,7 +513,7 @@ namespace BandBridge.ViewModels
         }
         #endregion
         
-        
+         
 
 
 

@@ -1,24 +1,30 @@
-﻿namespace Communication.Data
+﻿using System.Runtime.Serialization;
+
+namespace Communication.Data
 {
     /// <summary>
     /// Contains all data required to paired remote client and connected Band.
     /// </summary>
+    [DataContract]
     class PairRequest
     {
         #region Properties
         /// <summary>
         /// Client's address.
         /// </summary>
+        [DataMember]
         public string ClientAddress { get; set; }
 
         /// <summary>
         /// Number of client's open port listening for incoming Band data.
         /// </summary>
+        [DataMember]
         public int OpenPort { get; set; }
 
         /// <summary>
         /// Name of the choosen Band.
         /// </summary>
+        [DataMember]
         public string BandName { get; set; }
         #endregion
 
