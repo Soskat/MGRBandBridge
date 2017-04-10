@@ -521,14 +521,14 @@ namespace BandBridge.ViewModels
             switch (message.Code)
             {
                 // send the list of all connected Bands:
-                case MessageCode.SHOW_ASK:
+                case MessageCode.SHOW_LIST_ASK:
                     if (_ConnectedBands != null)
-                        return new Message(MessageCode.SHOW_ANS, _ConnectedBands.Keys.ToArray());
+                        return new Message(MessageCode.SHOW_LIST_ANS, _ConnectedBands.Keys.ToArray());
                     else
-                        return new Message(MessageCode.SHOW_ANS, null);
+                        return new Message(MessageCode.SHOW_LIST_ANS, null);
 
                 // pair with specified Band request from connected client:
-                case MessageCode.PAIR_ASK:
+                case MessageCode.PAIR_BAND_ASK:
                     if(message.Result != null && message.Result.GetType() == typeof(PairRequest))
                     {
                         if (clientBandPairs.ContainsKey(((PairRequest)message.Result).BandName))
@@ -538,21 +538,21 @@ namespace BandBridge.ViewModels
                                                                    ((PairRequest)message.Result).OpenPort
                                                                   );
                             clientBandPairs.Add(((PairRequest)message.Result).BandName, clientInfo);
-                            return new Message(MessageCode.PAIR_ANS, true);
+                            return new Message(MessageCode.PAIR_BAND_ANS, true);
                         }
-                        return new Message(MessageCode.PAIR_ANS, false);
+                        return new Message(MessageCode.PAIR_BAND_ANS, false);
                     }
                     return new Message(MessageCode.CTR_MSG, null);
 
                 // free paired Band request from connected client:
-                case MessageCode.FREE_ASK:
+                case MessageCode.FREE_BAND_ASK:
                     if(message.Result != null && message.Result.GetType() == typeof(string))
                     {
                         if (clientBandPairs.ContainsKey((string)message.Result))
                         {
                             clientBandPairs[(string)message.Result].ClientAddress = null;
                         }
-                        return new Message(MessageCode.FREE_ANS, null);
+                        return new Message(MessageCode.FREE_BAND_ANS, null);
                     }
                     return new Message(MessageCode.CTR_MSG, null);
 
