@@ -38,12 +38,12 @@ namespace BandBridge.ViewModels
         /// <summary>
         /// Storage for Heart Rate sensor values.
         /// </summary>
-        private CircularBuffer _HrBuffer;
+        //private CircularBuffer _HrBuffer;
 
         /// <summary>
         /// Storage for GSR sensor values.
         /// </summary>
-        private CircularBuffer _GsrBuffer;
+        //private CircularBuffer _GsrBuffer;
         #endregion
 
         #region Properties
@@ -118,8 +118,6 @@ namespace BandBridge.ViewModels
         /// </summary>
         /// <param name="bandClient"><see cref="IBandClient"/> object connected with Band device</param>
         /// <param name="bandName">Band device name</param>
-        /// <param name="storageSize">HR and GSR storage size</param>
-        //public BandData(IBandClient bandClient, string bandName, int storageSize)
         public BandData(IBandClient bandClient, string bandName)
         {
             BandClient = bandClient;
@@ -145,8 +143,8 @@ namespace BandBridge.ViewModels
             BandClient.SensorManager.HeartRate.ReadingChanged += async (sender, args) =>
             {
                 // we've gotten new reading from sensor:
-                if (NewSensorData != null)
-                    NewSensorData(new SensorData(SensorCode.HR, args.SensorReading.HeartRate));
+                //if (NewSensorData != null)
+                //    NewSensorData(new SensorData(SensorCode.HR, args.SensorReading.HeartRate));   // ----------------------------------------------
 
                 // update app GUI info:
                 await CoreApplication.MainView.CoreWindow.Dispatcher.RunAsync(CoreDispatcherPriority.Normal, () =>
@@ -181,8 +179,8 @@ namespace BandBridge.ViewModels
             BandClient.SensorManager.Gsr.ReadingChanged += async (sender, args) =>
             {
                 // we've gotten new reading from sensor:
-                if (NewSensorData != null)
-                    NewSensorData(new SensorData(SensorCode.GSR, args.SensorReading.Resistance));
+                //if (NewSensorData != null)
+                //    NewSensorData(new SensorData(SensorCode.GSR, args.SensorReading.Resistance)); // ------------------------------------------
 
                 // update app GUI info:
                 await CoreApplication.MainView.CoreWindow.Dispatcher.RunAsync(CoreDispatcherPriority.Normal, () =>
