@@ -534,12 +534,20 @@ namespace BandBridge.ViewModels
                     {
                         if (clientBandPairs.ContainsKey(((PairRequest)message.Result).BandName))
                         {
-                            ClientInfo clientInfo = new ClientInfo(
-                                                                   ((PairRequest)message.Result).ClientAddress,
-                                                                   ((PairRequest)message.Result).OpenPort
-                                                                  );
-                            clientBandPairs.Add(((PairRequest)message.Result).BandName, clientInfo);
-                            return new Message(MessageCode.PAIR_BAND_ANS, true);
+                            try
+                            {
+                                ClientInfo clientInfo = new ClientInfo(
+                                                                       ((PairRequest)message.Result).ClientAddress,
+                                                                       ((PairRequest)message.Result).OpenPort
+                                                                      );
+                                //clientBandPairs.Add(((PairRequest)message.Result).BandName, clientInfo);
+                                clientBandPairs[((PairRequest)message.Result).BandName] = clientInfo;
+                                return new Message(MessageCode.PAIR_BAND_ANS, true);
+
+                            } catch (Exception ex) {
+                                Debug.WriteLine(ex);
+                                return new Message(MessageCode.CTR_MSG, null);
+                            }
                         }
                         return new Message(MessageCode.PAIR_BAND_ANS, false);
                     }
@@ -549,37 +557,21 @@ namespace BandBridge.ViewModels
                 case MessageCode.FREE_BAND_ASK:
                     if(message.Result != null && message.Result.GetType() == typeof(string))
                     {
-                        if (clientBandPairs.ContainsKey((string)message.Result))
+                        try
                         {
-                            clientBandPairs[(string)message.Result].ClientAddress = null;
+                            if (clientBandPairs.ContainsKey((string)message.Result))
+                            {
+                                clientBandPairs[(string)message.Result].ClientAddress = null;
+                            }
+                            return new Message(MessageCode.FREE_BAND_ANS, null);
+
+                        } catch (Exception ex) {
+                            Debug.WriteLine(ex);
+                            return new Message(MessageCode.CTR_MSG, null);
                         }
-                        return new Message(MessageCode.FREE_BAND_ANS, null);
                     }
                     return new Message(MessageCode.CTR_MSG, null);
-
-                //// send data from specified connected Band:
-                //case MessageCode.GET_DATA_ASK:
-                //    if (message.Result != null)
-                //    {
-                //        if (message.Result.GetType() == typeof(string))
-                //        {
-                //            if (_ConnectedBands != null && _ConnectedBands.ContainsKey((string)message.Result))
-                //            {
-                //                // prepare data:
-                //                int hrAvg = _ConnectedBands[(string)message.Result].HrBuffer.GetAverage();
-                //                int gsrAvg = _ConnectedBands[(string)message.Result].GsrBuffer.GetAverage();
-                //                return new Message(MessageCode.GET_DATA_ANS,
-                //                                   new SensorData[] {
-                //                                       new SensorData(SensorCode.HR, hrAvg),
-                //                                       new SensorData(SensorCode.GSR, gsrAvg)
-                //                                   });
-                //            }
-                //            else return new Message(MessageCode.GET_DATA_ANS, null);
-                //        }
-                //    }
-                //    return new Message(MessageCode.CTR_MSG, null);
-
-
+                    
                 // wrong message code:
                 default:
                     return new Message(MessageCode.CTR_MSG, null);
