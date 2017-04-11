@@ -50,7 +50,7 @@ namespace Communication.Data
         /// <returns></returns>
         public override string ToString()
         {
-            return string.Format("[{0} | {2}]", OpenPort.ToString(), BandName);
+            return string.Format("[{0} | ({1}, {2})]", BandName, ClientAddress, OpenPort.ToString());
         }
         #endregion
     }
