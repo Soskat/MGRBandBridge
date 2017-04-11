@@ -11,6 +11,13 @@ namespace Communication.Data
     [DataContract]
     public class Message
     {
+        #region Static fields
+        /// <summary>
+        /// An array with types known by DataContractSerializer.
+        /// </summary>
+        public static Type[] SerializedTypesSet = { typeof(SensorData), typeof(PairRequest) };
+        #endregion
+
         #region Properties
         /// <summary>
         /// Message command type code.
@@ -50,7 +57,8 @@ namespace Communication.Data
             using (MemoryStream stream = new MemoryStream())
             using (XmlDictionaryWriter writer = XmlDictionaryWriter.CreateBinaryWriter(stream))
             {
-                DataContractSerializer serializer = new DataContractSerializer(typeof(Message), new Type[] { typeof(SensorData), typeof(PairRequest) });
+                DataContractSerializer serializer = new DataContractSerializer(typeof(Message), SerializedTypesSet);
+                //DataContractSerializer serializer = new DataContractSerializer(typeof(Message), new Type[] { typeof(SensorData), typeof(PairRequest) });
                 serializer.WriteObject(writer, message);
                 writer.Flush();
                 data = stream.ToArray();
