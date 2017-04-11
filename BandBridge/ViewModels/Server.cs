@@ -561,7 +561,7 @@ namespace BandBridge.ViewModels
                         {
                             if (clientBandPairs.ContainsKey((string)message.Result))
                             {
-                                clientBandPairs[(string)message.Result].ClientAddress = null;
+                                clientBandPairs[(string)message.Result] = null;
                             }
                             return new Message(MessageCode.FREE_BAND_ANS, null);
 
