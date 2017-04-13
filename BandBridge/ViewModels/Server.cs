@@ -304,8 +304,9 @@ namespace BandBridge.ViewModels
         /// </summary>
         /// <param name="clientInfo">Remote host's info</param>
         /// <param name="message">Message to send</param>
-        private async void SendDataToPairedClient(ClientInfo clientInfo, Message message)
+        private async void SendDataToPairedClient(string sender, ClientInfo clientInfo, Message message)
         {
+            Debug.WriteLine("Try to send sth");
             try
             {
                 // make sure if clientInfo exists:
@@ -330,7 +331,10 @@ namespace BandBridge.ViewModels
             }
             catch (Exception ex)
             {
-                Debug.WriteLine(ex.Message);
+                // lost connection to remote host:
+                Debug.WriteLine(ex.ToString());
+                clientBandPairs[sender] = null;
+                Debug.WriteLine("Buka");
             }
         }
 
@@ -450,6 +454,9 @@ namespace BandBridge.ViewModels
             SetupBandsListView();
             // update client-Bands pairs list:
             UpdateClientBandPairsList();
+
+            //  TEST ------ TEST ------ TEST
+            Test();
         }
         
         /// <summary>
@@ -495,7 +502,7 @@ namespace BandBridge.ViewModels
                     kvp.Value.NewSensorData += newReading =>
                     {
                         Message msg = new Message(MessageCode.BAND_DATA, newReading);
-                        SendDataToPairedClient(temp[kvp.Key], msg);
+                        SendDataToPairedClient(kvp.Key, temp[kvp.Key], msg);
                     };
                 }
             }
@@ -511,10 +518,6 @@ namespace BandBridge.ViewModels
         {
             DebugInfo = "";
         }
-        #endregion
-        
-         
-
 
 
         private Message PrepareResponseToClient(Message message)
@@ -530,7 +533,7 @@ namespace BandBridge.ViewModels
 
                 // pair with specified Band request from connected client:
                 case MessageCode.PAIR_BAND_ASK:
-                    if(message.Result != null && message.Result.GetType() == typeof(PairRequest))
+                    if (message.Result != null && message.Result.GetType() == typeof(PairRequest))
                     {
                         if (clientBandPairs.ContainsKey(((PairRequest)message.Result).BandName))
                         {
@@ -544,7 +547,9 @@ namespace BandBridge.ViewModels
                                 clientBandPairs[((PairRequest)message.Result).BandName] = clientInfo;
                                 return new Message(MessageCode.PAIR_BAND_ANS, true);
 
-                            } catch (Exception ex) {
+                            }
+                            catch (Exception ex)
+                            {
                                 Debug.WriteLine(ex);
                                 return new Message(MessageCode.CTR_MSG, null);
                             }
@@ -555,7 +560,7 @@ namespace BandBridge.ViewModels
 
                 // free paired Band request from connected client:
                 case MessageCode.FREE_BAND_ASK:
-                    if(message.Result != null && message.Result.GetType() == typeof(string))
+                    if (message.Result != null && message.Result.GetType() == typeof(string))
                     {
                         try
                         {
@@ -565,18 +570,31 @@ namespace BandBridge.ViewModels
                             }
                             return new Message(MessageCode.FREE_BAND_ANS, null);
 
-                        } catch (Exception ex) {
+                        }
+                        catch (Exception ex)
+                        {
                             Debug.WriteLine(ex);
                             return new Message(MessageCode.CTR_MSG, null);
                         }
                     }
                     return new Message(MessageCode.CTR_MSG, null);
-                    
+
                 // wrong message code:
                 default:
                     return new Message(MessageCode.CTR_MSG, null);
             }
         }
-    
+
+        #endregion
+
+
+
+        private void Test()
+        {
+            if (clientBandPairs != null && clientBandPairs.Count > 0)
+            {
+                clientBandPairs["Fake Band 1"] = new ClientInfo("ROGwolf", 2066);
+            }
+        }
     }
 }
