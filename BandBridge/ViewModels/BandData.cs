@@ -143,8 +143,8 @@ namespace BandBridge.ViewModels
             BandClient.SensorManager.HeartRate.ReadingChanged += async (sender, args) =>
             {
                 // we've gotten new reading from sensor:
-                //if (NewSensorData != null)
-                //    NewSensorData(new SensorData(SensorCode.HR, args.SensorReading.HeartRate));   // ----------------------------------------------
+                if (NewSensorData != null)
+                    NewSensorData(new SensorData(SensorCode.HR, args.SensorReading.HeartRate));   // ----------------------------------------------
 
                 // update app GUI info:
                 await CoreApplication.MainView.CoreWindow.Dispatcher.RunAsync(CoreDispatcherPriority.Normal, () =>
@@ -179,8 +179,8 @@ namespace BandBridge.ViewModels
             BandClient.SensorManager.Gsr.ReadingChanged += async (sender, args) =>
             {
                 // we've gotten new reading from sensor:
-                //if (NewSensorData != null)
-                //    NewSensorData(new SensorData(SensorCode.GSR, args.SensorReading.Resistance)); // ------------------------------------------
+                if (NewSensorData != null)
+                    NewSensorData(new SensorData(SensorCode.GSR, args.SensorReading.Resistance)); // ------------------------------------------
 
                 // update app GUI info:
                 await CoreApplication.MainView.CoreWindow.Dispatcher.RunAsync(CoreDispatcherPriority.Normal, () =>

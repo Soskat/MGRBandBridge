@@ -306,7 +306,6 @@ namespace BandBridge.ViewModels
         /// <param name="message">Message to send</param>
         private async void SendDataToPairedClient(string sender, ClientInfo clientInfo, Message message)
         {
-            Debug.WriteLine("Try to send sth");
             try
             {
                 // make sure if clientInfo exists:
@@ -321,11 +320,12 @@ namespace BandBridge.ViewModels
 
                 // Connect to remote host:
                 await socket.ConnectAsync(new HostName(clientInfo.ClientAddress), clientInfo.Port.ToString());
-
+                Debug.WriteLine("bu 1 - after connect");
                 // Write data to the remote server.
                 Stream outStream = socket.OutputStream.AsStreamForWrite();
                 await outStream.WriteAsync(byteData, 0, byteData.Length);
                 await outStream.FlushAsync();
+                Debug.WriteLine("bu 2 - after send");
 
                 Debug.WriteLine(string.Format("Send {0} to {1}:{2}", message, clientInfo.ClientAddress, clientInfo.Port));
             }
@@ -333,8 +333,12 @@ namespace BandBridge.ViewModels
             {
                 // lost connection to remote host:
                 Debug.WriteLine(ex.ToString());
-                clientBandPairs[sender] = null;
-                Debug.WriteLine("Buka");
+                Debug.WriteLine("BukaBEFORE: " + sender + ":" + clientBandPairs[sender]);
+                lock (clientBandPairs)
+                {
+                    clientBandPairs[sender] = null;
+                }
+                Debug.WriteLine("BukaAFTER: " + sender + ":" + clientBandPairs[sender]);
             }
         }
 
@@ -456,7 +460,7 @@ namespace BandBridge.ViewModels
             UpdateClientBandPairsList();
 
             //  TEST ------ TEST ------ TEST
-            Test();
+            //Test();
         }
         
         /// <summary>
