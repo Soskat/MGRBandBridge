@@ -279,6 +279,7 @@ namespace BandBridge.ViewModels
                     await inStream.ReadAsync(receiveBuffer, 0, bufferSize);
                     packetizer.DataReceived(receiveBuffer);
                 }
+                Debug.WriteLine("---------------------------------------------------------");
                 Debug.WriteLine("__Received: " + message);
 
                 // Prepare response:
@@ -320,12 +321,12 @@ namespace BandBridge.ViewModels
 
                 // Connect to remote host:
                 await socket.ConnectAsync(new HostName(clientInfo.ClientAddress), clientInfo.Port.ToString());
-                Debug.WriteLine("bu 1 - after connect");
+                //Debug.WriteLine("bu 1 - after connect");
                 // Write data to the remote server.
                 Stream outStream = socket.OutputStream.AsStreamForWrite();
                 await outStream.WriteAsync(byteData, 0, byteData.Length);
                 await outStream.FlushAsync();
-                Debug.WriteLine("bu 2 - after send");
+                //Debug.WriteLine("bu 2 - after send");
 
                 Debug.WriteLine(string.Format("Send {0} to {1}:{2}", message, clientInfo.ClientAddress, clientInfo.Port));
             }
@@ -337,6 +338,7 @@ namespace BandBridge.ViewModels
                 lock (clientBandPairs)
                 {
                     clientBandPairs[sender] = null;
+                    Debug.WriteLine("Current Task ID: " + Task.CurrentId);
                 }
                 Debug.WriteLine("BukaAFTER: " + sender + ":" + clientBandPairs[sender]);
             }
@@ -506,6 +508,7 @@ namespace BandBridge.ViewModels
                     kvp.Value.NewSensorData += newReading =>
                     {
                         Message msg = new Message(MessageCode.BAND_DATA, newReading);
+                        Debug.WriteLine(kvp.Key + " : " + temp[kvp.Key]);
                         SendDataToPairedClient(kvp.Key, temp[kvp.Key], msg);
                     };
                 }
