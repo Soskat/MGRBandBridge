@@ -34,16 +34,6 @@ namespace BandBridge.ViewModels
         /// Last GSR sensor reading.
         /// </summary>
         private int _GsrReading;
-
-        /// <summary>
-        /// Storage for Heart Rate sensor values.
-        /// </summary>
-        //private CircularBuffer _HrBuffer;
-
-        /// <summary>
-        /// Storage for GSR sensor values.
-        /// </summary>
-        //private CircularBuffer _GsrBuffer;
         #endregion
 
         #region Properties
@@ -82,24 +72,6 @@ namespace BandBridge.ViewModels
             get { return _GsrReading; }
             set { SetProperty(_GsrReading, value, () => _GsrReading = value); }
         }
-
-        ///// <summary>
-        ///// Storage for Heart Rate sensor values.
-        ///// </summary>
-        //public CircularBuffer HrBuffer
-        //{
-        //    get { return _HrBuffer; }
-        //    set { SetProperty(_HrBuffer, value, () => _HrBuffer = value); }
-        //}
-
-        ///// <summary>
-        ///// Storage for GSR sensor values.
-        ///// </summary>
-        //public CircularBuffer GsrBuffer
-        //{
-        //    get { return _GsrBuffer; }
-        //    set { SetProperty(_GsrBuffer, value, () => _GsrBuffer = value); }
-        //}
         #endregion
 
         #region Delegates
@@ -122,8 +94,6 @@ namespace BandBridge.ViewModels
         {
             BandClient = bandClient;
             Name = bandName;
-            //HrBuffer = new CircularBuffer(storageSize);
-            //GsrBuffer = new CircularBuffer(storageSize);
         }
         #endregion
 
@@ -132,7 +102,7 @@ namespace BandBridge.ViewModels
         /// Gets Hear Rate sensor values from connected Band device.
         /// </summary>
         /// <returns></returns>
-        public async Task GetHeartRate()
+        public async Task StartHrReading()
         {
             // check current user heart rate consent; if user hasn’t consented, request consent:
             if (BandClient.SensorManager.HeartRate.GetCurrentUserConsent() != UserConsent.Granted)
@@ -150,12 +120,12 @@ namespace BandBridge.ViewModels
                 await CoreApplication.MainView.CoreWindow.Dispatcher.RunAsync(CoreDispatcherPriority.Normal, () =>
                  {
                      HrReading = args.SensorReading.HeartRate;
-                     //HrBuffer.Add(args.SensorReading.HeartRate);
                  });
             };
             // start the Heartrate sensor:
             try
             {
+                Debug.WriteLine(_Name + ": Start HR reading");
                 await BandClient.SensorManager.HeartRate.StartReadingsAsync();
             }
             catch (BandException ex)
@@ -168,7 +138,7 @@ namespace BandBridge.ViewModels
         /// Gets Galvenic Skin Response sensor values from connected Band device.
         /// </summary>
         /// <returns></returns>
-        public async Task GetGsr()
+        public async Task StartGsrReading()
         {
             // check current user gsr consent; if user hasn’t consented, request consent:
             if (BandClient.SensorManager.Gsr.GetCurrentUserConsent() != UserConsent.Granted)
@@ -186,13 +156,41 @@ namespace BandBridge.ViewModels
                 await CoreApplication.MainView.CoreWindow.Dispatcher.RunAsync(CoreDispatcherPriority.Normal, () =>
                 {
                     GsrReading = args.SensorReading.Resistance;
-                    //GsrBuffer.Add(args.SensorReading.Resistance);
                 });
             };
-            // start the Gsr sensor:
+            // start the GSR sensor:
             try
             {
+                Debug.WriteLine(_Name + ": Start GSR reading");
                 await BandClient.SensorManager.Gsr.StartReadingsAsync();
+            }
+            catch (BandException ex)
+            {
+                Debug.WriteLine(ex.Message);
+            }
+        }
+
+        public async Task StopHrReading()
+        {
+            // stop the HR sensor:
+            try
+            {
+                Debug.WriteLine(_Name + ": Stop HR reading");
+                await BandClient.SensorManager.HeartRate.StopReadingsAsync();
+            }
+            catch (BandException ex)
+            {
+                Debug.WriteLine(ex.Message);
+            }
+        }
+
+        public async Task StopGsrReading()
+        {
+            // stop the GSR sensor:
+            try
+            {
+                Debug.WriteLine(_Name + ": Stop GSR reading");
+                await BandClient.SensorManager.Gsr.StopReadingsAsync();
             }
             catch (BandException ex)
             {

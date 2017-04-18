@@ -283,7 +283,7 @@ namespace BandBridge.ViewModels
                 Debug.WriteLine("__Received: " + message);
 
                 // Prepare response:
-                Message response = PrepareResponseToClient(message);
+                Message response = await PrepareResponseToClient(message);
                 byte[] byteData = PacketProtocol.WrapMessage(Message.Serialize(response));
 
                 //Send the response to the remote client.
@@ -388,11 +388,12 @@ namespace BandBridge.ViewModels
                         {
                             // add new Band to collection:
                             BandData bandData = new BandData(bandClient, pairedBands[i].Name);
-                            //BandData bandData = new BandData(bandClient, pairedBands[i].Name, StorageSize);
                             tempCB.Add(pairedBands[i].Name, bandData);
-                            // starts reading sensor data:
-                            await bandData.GetHeartRate();
-                            await bandData.GetGsr();
+                            
+                            
+                            //// starts reading sensor data:
+                            //await bandData.StartHrReading();
+                            //await bandData.StartGsrReading();
                         }
                     }
                 }
@@ -448,11 +449,12 @@ namespace BandBridge.ViewModels
                 {
                     // add new Band to collection:
                     BandData bandData = new BandData(bandClient, band.Name);
-                    //BandData bandData = new BandData(bandClient, band.Name, StorageSize);
                     _ConnectedBands.Add(band.Name, bandData);
-                    // starts reading sensor data:
-                    await bandData.GetHeartRate();
-                    await bandData.GetGsr();
+                    
+                    
+                    //// starts reading sensor data:
+                    //await bandData.StartHrReading();
+                    //await bandData.StartGsrReading();
                 }
             }
 
@@ -527,7 +529,7 @@ namespace BandBridge.ViewModels
         }
 
 
-        private Message PrepareResponseToClient(Message message)
+        private async Task<Message> PrepareResponseToClient(Message message)
         {
             switch (message.Code)
             {
@@ -546,12 +548,17 @@ namespace BandBridge.ViewModels
                         {
                             try
                             {
+                                // update pair info about remote host:
                                 ClientInfo clientInfo = new ClientInfo(
                                                                        ((PairRequest)message.Result).ClientAddress,
                                                                        ((PairRequest)message.Result).OpenPort
                                                                       );
-                                //clientBandPairs.Add(((PairRequest)message.Result).BandName, clientInfo);
                                 clientBandPairs[((PairRequest)message.Result).BandName] = clientInfo;
+
+                                // start reading from sensors:
+                                await _ConnectedBands[((PairRequest)message.Result).BandName].StartHrReading();
+                                await _ConnectedBands[((PairRequest)message.Result).BandName].StartGsrReading();
+
                                 return new Message(MessageCode.PAIR_BAND_ANS, true);
 
                             }
@@ -573,7 +580,12 @@ namespace BandBridge.ViewModels
                         {
                             if (clientBandPairs.ContainsKey((string)message.Result))
                             {
+                                // reset pair info about remote host:
                                 clientBandPairs[(string)message.Result] = null;
+
+                                // stop reading from sensors:
+                                await _ConnectedBands[((PairRequest)message.Result).BandName].StopHrReading();
+                                await _ConnectedBands[((PairRequest)message.Result).BandName].StopGsrReading();
                             }
                             return new Message(MessageCode.FREE_BAND_ANS, null);
 
