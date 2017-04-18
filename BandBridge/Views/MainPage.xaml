@@ -9,7 +9,7 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     mc:Ignorable="d"
     MinWidth="435" Width="435"
-    MinHeight="600" Height="600">
+    MinHeight="500" Height="500">
     
     <Page.Resources>
         <converters:InverseBooleanConverter x:Key="InverseBoolConv"/>
@@ -48,8 +48,6 @@
         <Grid.RowDefinitions>
             <RowDefinition Height="auto"/>
             <RowDefinition Height="2*"/>
-            <RowDefinition Height="auto"/>
-            <RowDefinition />
         </Grid.RowDefinitions>
 
         <!-- Server info & settings -->
@@ -153,20 +151,6 @@
             </GridView>
             
         </Grid>
-
-
-        <!-- Server debug info -->
-        <StackPanel Grid.Row="2" Orientation="Horizontal" Margin="5">
-            <TextBlock Style="{StaticResource HeaderTextBlock}">Debug info</TextBlock>
-            <Button Margin="5,0" Content="Clear"
-                        Click="{x:Bind ServerVM.ClearDebugInfo}"/>
-        </StackPanel>
-        <ScrollViewer Grid.Row="3" Margin="5,0,5,5" Background="LightGray"
-                      HorizontalScrollMode="Disabled"
-                      VerticalScrollMode="Auto">
-            <TextBlock Height="auto"
-                       Text="{x:Bind ServerVM.DebugInfo, Mode=OneWay}"/>
-        </ScrollViewer>
 
     </Grid>
 </Page>

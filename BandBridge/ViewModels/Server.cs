@@ -47,12 +47,7 @@ namespace BandBridge.ViewModels
         /// Fake Bands amount.
         /// </summary>
         private int _FakeBandsAmount;
-
-        /// <summary>
-        /// Server debug info.
-        /// </summary>
-        private StringBuilder _DebugInfo;
-
+        
         /// <summary>
         /// Dictionary of connected Band devices.
         /// </summary>
@@ -108,15 +103,6 @@ namespace BandBridge.ViewModels
             set { SetProperty(_ServicePort, value, () => _ServicePort = value); }
         }
 
-        ///// <summary>
-        ///// BandData buffers storage size.
-        ///// </summary>
-        //public int StorageSize
-        //{
-        //    get { return _StorageSize; }
-        //    set { SetProperty(_StorageSize, value, () => _StorageSize = value); }
-        //}
-
         /// <summary>
         /// Fake Bands amount.
         /// </summary>
@@ -134,20 +120,7 @@ namespace BandBridge.ViewModels
             get { return _ConnectedBandsCollection; }
             set { SetProperty(ref _ConnectedBandsCollection, value); }
         }
-
-        /// <summary>
-        /// Server debug info.
-        /// </summary>
-        public string DebugInfo
-        {
-            get { return _DebugInfo.ToString(); }
-            set
-            {
-                if(value == "") SetProperty(_DebugInfo.ToString(), value, () => _DebugInfo.Clear());
-                else SetProperty(_DebugInfo.ToString(), value, () => _DebugInfo.AppendLine(value));
-            }
-        }
-
+        
         /// <summary>
         /// Is server working?
         /// </summary>
@@ -169,7 +142,6 @@ namespace BandBridge.ViewModels
             //StorageSize = 30;
             FakeBandsAmount = 6;
             IsServerWorking = false;
-            _DebugInfo = new StringBuilder();
             // get host's IPv4 address:
             foreach (HostName localHostName in NetworkInformation.GetHostNames())
             {
@@ -189,7 +161,6 @@ namespace BandBridge.ViewModels
         /// <returns>Asynchronous operation</returns>
         public async Task StartServer()
         {
-            DebugInfo = ">> Try to start the server...";
             Debug.WriteLine(">> Try to start the server...");
 
             try
@@ -206,12 +177,10 @@ namespace BandBridge.ViewModels
 
                 IsServerWorking = true;
                 
-                DebugInfo = "Waiting for connections...";
                 Debug.WriteLine("Waiting for connections...");
             }
             catch (Exception e)
             {
-                DebugInfo = ">> Exception in StartServer(): " + e.Message;
                 Debug.WriteLine(">> Exception in StartServer(): " + e.Message);
             }
         }
@@ -222,7 +191,6 @@ namespace BandBridge.ViewModels
         /// <returns>Asynchronous operation</returns>
         public void StopServer()
         {
-            DebugInfo = ">> Try to stop the server...";
             Debug.WriteLine(">> Try to stop the server...");
 
             try
@@ -236,12 +204,10 @@ namespace BandBridge.ViewModels
 
                     IsServerWorking = false;
                 }
-                DebugInfo = ">> Server closed...";
                 Debug.WriteLine(">> Server closed...");
             }
             catch (Exception e)
             {
-                DebugInfo = ">> Exception in StopServer(): " + e.Message;
                 Debug.WriteLine(">> Exception in StopServer(): " + e.Message);
             }
         }
@@ -520,14 +486,6 @@ namespace BandBridge.ViewModels
             clientBandPairs = temp;
         }
         
-        /// <summary>
-        /// Clears all debug info.
-        /// </summary>
-        public void ClearDebugInfo()
-        {
-            DebugInfo = "";
-        }
-
 
         private async Task<Message> PrepareResponseToClient(Message message)
         {
