@@ -9,7 +9,6 @@ using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 using Windows.Networking;
 using Windows.Networking.Connectivity;
@@ -139,18 +138,11 @@ namespace BandBridge.ViewModels
         public Server(string servicePort)
         {
             ServicePort = servicePort;
-            //StorageSize = 30;
             FakeBandsAmount = 6;
             IsServerWorking = false;
             // get host's IPv4 address:
-            foreach (HostName localHostName in NetworkInformation.GetHostNames())
-            {
-                if (localHostName.IPInformation != null && localHostName.Type == HostNameType.Ipv4)
-                {
-                    LocalHost = localHostName;
-                    break;
-                }
-            }
+            LocalHost = Array.Find(NetworkInformation.GetHostNames().ToArray(),
+                                   a => a.IPInformation != null && a.Type == HostNameType.Ipv4);
         }
         #endregion
 
@@ -299,14 +291,16 @@ namespace BandBridge.ViewModels
             catch (Exception ex)
             {
                 // lost connection to remote host:
-                Debug.WriteLine(ex.ToString());
+                Debug.WriteLine(ex.Message);
+                //Debug.WriteLine(ex.ToString());
                 Debug.WriteLine("BukaBEFORE: " + sender + ":" + clientBandPairs[sender]);
                 lock (clientBandPairs)
                 {
                     clientBandPairs[sender] = null;
-                    Debug.WriteLine("Current Task ID: " + Task.CurrentId);
                 }
                 Debug.WriteLine("BukaAFTER: " + sender + ":" + clientBandPairs[sender]);
+                await _ConnectedBands[sender].StopHrReading();
+                await _ConnectedBands[sender].StopGsrReading();
             }
         }
 
@@ -542,8 +536,9 @@ namespace BandBridge.ViewModels
                                 clientBandPairs[(string)message.Result] = null;
 
                                 // stop reading from sensors:
-                                await _ConnectedBands[((PairRequest)message.Result).BandName].StopHrReading();
-                                await _ConnectedBands[((PairRequest)message.Result).BandName].StopGsrReading();
+                                await _ConnectedBands[(string)message.Result].StopHrReading();
+                                await _ConnectedBands[(string)message.Result].StopGsrReading();
+                                Debug.WriteLine((string)message.Result + ": stopped reading sensors");
                             }
                             return new Message(MessageCode.FREE_BAND_ANS, null);
 
