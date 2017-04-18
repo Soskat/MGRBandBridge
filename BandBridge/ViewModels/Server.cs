@@ -279,12 +279,11 @@ namespace BandBridge.ViewModels
 
                 // Connect to remote host:
                 await socket.ConnectAsync(new HostName(clientInfo.ClientAddress), clientInfo.Port.ToString());
-                //Debug.WriteLine("bu 1 - after connect");
+
                 // Write data to the remote server.
                 Stream outStream = socket.OutputStream.AsStreamForWrite();
                 await outStream.WriteAsync(byteData, 0, byteData.Length);
                 await outStream.FlushAsync();
-                //Debug.WriteLine("bu 2 - after send");
 
                 Debug.WriteLine(string.Format("Send {0} to {1}:{2}", message, clientInfo.ClientAddress, clientInfo.Port));
             }
@@ -299,8 +298,7 @@ namespace BandBridge.ViewModels
                     clientBandPairs[sender] = null;
                 }
                 Debug.WriteLine("BukaAFTER: " + sender + ":" + clientBandPairs[sender]);
-                await _ConnectedBands[sender].StopHrReading();
-                await _ConnectedBands[sender].StopGsrReading();
+                await _ConnectedBands[sender].StopReadingSensorsData();
             }
         }
 
@@ -318,6 +316,16 @@ namespace BandBridge.ViewModels
 
             // make sure that _ConnectedBands dictionary exists:
             if (_ConnectedBands == null) _ConnectedBands = new Dictionary<string, BandData>();
+            else
+            {
+                // dispose all connected bands:
+                foreach (var band in _ConnectedBands)
+                {
+                    await band.Value.StopReadingSensorsData();
+                    band.Value.BandClient.Dispose();
+                }
+                _ConnectedBands.Clear();
+            }
 
             // deal with all connected Band devices:
             if (pairedBands.Length > 0)
@@ -349,11 +357,10 @@ namespace BandBridge.ViewModels
                             // add new Band to collection:
                             BandData bandData = new BandData(bandClient, pairedBands[i].Name);
                             tempCB.Add(pairedBands[i].Name, bandData);
-                            
-                            
+
+
                             //// starts reading sensor data:
-                            //await bandData.StartHrReading();
-                            //await bandData.StartGsrReading();
+                            //await bandData.StartReadingSensorsData();
                         }
                     }
                 }
@@ -396,6 +403,7 @@ namespace BandBridge.ViewModels
                 // dispose all connected bands:
                 foreach (var band in _ConnectedBands)
                 {
+                    await band.Value.StopReadingSensorsData();
                     band.Value.BandClient.Dispose();
                 }
                 _ConnectedBands.Clear();
@@ -410,11 +418,10 @@ namespace BandBridge.ViewModels
                     // add new Band to collection:
                     BandData bandData = new BandData(bandClient, band.Name);
                     _ConnectedBands.Add(band.Name, bandData);
-                    
-                    
+
+
                     //// starts reading sensor data:
-                    //await bandData.StartHrReading();
-                    //await bandData.StartGsrReading();
+                    //await bandData.StartReadingSensorsData();
                 }
             }
 
@@ -423,7 +430,7 @@ namespace BandBridge.ViewModels
             // update client-Bands pairs list:
             UpdateClientBandPairsList();
 
-            //  TEST ------ TEST ------ TEST
+            // TEST------ TEST------ TEST
             //Test();
         }
         
@@ -470,7 +477,7 @@ namespace BandBridge.ViewModels
                     kvp.Value.NewSensorData += newReading =>
                     {
                         Message msg = new Message(MessageCode.BAND_DATA, newReading);
-                        Debug.WriteLine(kvp.Key + " : " + temp[kvp.Key]);
+                        Debug.WriteLine(kvp.Key + " : " + temp[kvp.Key] + newReading);
                         SendDataToPairedClient(kvp.Key, temp[kvp.Key], msg);
                     };
                 }
@@ -508,8 +515,7 @@ namespace BandBridge.ViewModels
                                 clientBandPairs[((PairRequest)message.Result).BandName] = clientInfo;
 
                                 // start reading from sensors:
-                                await _ConnectedBands[((PairRequest)message.Result).BandName].StartHrReading();
-                                await _ConnectedBands[((PairRequest)message.Result).BandName].StartGsrReading();
+                                await _ConnectedBands[((PairRequest)message.Result).BandName].StartReadingSensorsData();
 
                                 return new Message(MessageCode.PAIR_BAND_ANS, true);
 
@@ -536,8 +542,7 @@ namespace BandBridge.ViewModels
                                 clientBandPairs[(string)message.Result] = null;
 
                                 // stop reading from sensors:
-                                await _ConnectedBands[(string)message.Result].StopHrReading();
-                                await _ConnectedBands[(string)message.Result].StopGsrReading();
+                                await _ConnectedBands[(string)message.Result].StopReadingSensorsData();
                                 Debug.WriteLine((string)message.Result + ": stopped reading sensors");
                             }
                             return new Message(MessageCode.FREE_BAND_ANS, null);
@@ -566,6 +571,7 @@ namespace BandBridge.ViewModels
             if (clientBandPairs != null && clientBandPairs.Count > 0)
             {
                 clientBandPairs["Fake Band 1"] = new ClientInfo("ROGwolf", 2066);
+                _ConnectedBands["Fake Band 1"].StartReadingSensorsData();
             }
         }
     }

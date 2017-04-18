@@ -102,7 +102,7 @@ namespace BandBridge.ViewModels
         /// Gets Hear Rate sensor values from connected Band device.
         /// </summary>
         /// <returns></returns>
-        public async Task StartHrReading()
+        private async Task StartHrReading()
         {
             // check current user heart rate consent; if user hasn’t consented, request consent:
             if (BandClient.SensorManager.HeartRate.GetCurrentUserConsent() != UserConsent.Granted)
@@ -125,8 +125,8 @@ namespace BandBridge.ViewModels
             // start the Heartrate sensor:
             try
             {
-                Debug.WriteLine(_Name + ": Start HR reading");
                 await BandClient.SensorManager.HeartRate.StartReadingsAsync();
+                Debug.WriteLine(_Name + ": Started HR reading");
             }
             catch (BandException ex)
             {
@@ -138,7 +138,7 @@ namespace BandBridge.ViewModels
         /// Gets Galvenic Skin Response sensor values from connected Band device.
         /// </summary>
         /// <returns></returns>
-        public async Task StartGsrReading()
+        private async Task StartGsrReading()
         {
             // check current user gsr consent; if user hasn’t consented, request consent:
             if (BandClient.SensorManager.Gsr.GetCurrentUserConsent() != UserConsent.Granted)
@@ -161,8 +161,8 @@ namespace BandBridge.ViewModels
             // start the GSR sensor:
             try
             {
-                Debug.WriteLine(_Name + ": Start GSR reading");
                 await BandClient.SensorManager.Gsr.StartReadingsAsync();
+                Debug.WriteLine(_Name + ": Started GSR reading");
             }
             catch (BandException ex)
             {
@@ -170,13 +170,13 @@ namespace BandBridge.ViewModels
             }
         }
 
-        public async Task StopHrReading()
+        private async Task StopHrReading()
         {
             // stop the HR sensor:
             try
             {
-                Debug.WriteLine(_Name + ": Stop HR reading");
                 await BandClient.SensorManager.HeartRate.StopReadingsAsync();
+                Debug.WriteLine(_Name + ": Stopped HR reading");
             }
             catch (BandException ex)
             {
@@ -184,18 +184,34 @@ namespace BandBridge.ViewModels
             }
         }
 
-        public async Task StopGsrReading()
+        private async Task StopGsrReading()
         {
             // stop the GSR sensor:
             try
             {
-                Debug.WriteLine(_Name + ": Stop GSR reading");
                 await BandClient.SensorManager.Gsr.StopReadingsAsync();
+                Debug.WriteLine(_Name + ": Stopped GSR reading");
             }
             catch (BandException ex)
             {
                 Debug.WriteLine(ex.Message);
             }
+        }
+
+
+
+        public async Task StartReadingSensorsData()
+        {
+            await StartHrReading();
+            await StartGsrReading();
+            Debug.WriteLine("__Started reading data__");
+        }
+
+        public async Task StopReadingSensorsData()
+        {
+            await StopHrReading();
+            await StopGsrReading();
+            Debug.WriteLine("__Stopped reading data__");
         }
         #endregion
     }
