@@ -1,4 +1,6 @@
-﻿namespace BandBridge.Data
+﻿using System.Text;
+
+namespace BandBridge.Data
 {
     /// <summary>
     /// Circular buffer. In case of the end of free space, old data will be ovewritten.
@@ -52,6 +54,21 @@
                 sum += obj;
             }
             return sum / buffer.Length;
+        }
+
+        /// <summary>
+        /// Writes all buffer elements in form of: [a1 | a2 | ... an | ]
+        /// </summary>
+        /// <returns></returns>
+        public override string ToString()
+        {
+            StringBuilder sb = new StringBuilder("[ ");
+            foreach(int item in buffer)
+            {
+                sb.Append(item + " | ");
+            }
+            sb.Append("]");
+            return sb.ToString();
         }
         #endregion
     }

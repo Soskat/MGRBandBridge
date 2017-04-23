@@ -34,6 +34,17 @@ namespace BandBridge.ViewModels
         /// Last GSR sensor reading.
         /// </summary>
         private int _GsrReading;
+
+
+        /// <summary>
+        /// Storage for Heart Rate sensor values.
+        /// </summary>
+        private CircularBuffer _HrBuffer;
+
+        /// <summary>
+        /// Storage for GSR sensor values.
+        /// </summary>
+        private CircularBuffer _GsrBuffer;
         #endregion
 
         #region Properties
@@ -72,16 +83,35 @@ namespace BandBridge.ViewModels
             get { return _GsrReading; }
             set { SetProperty(_GsrReading, value, () => _GsrReading = value); }
         }
+
+
+        /// <summary>
+        /// Storage for Heart Rate sensor values.
+        /// </summary>
+        public CircularBuffer HrBuffer
+        {
+            get { return _HrBuffer; }
+            set { SetProperty(_HrBuffer, value, () => _HrBuffer = value); }
+        }
+
+        /// <summary>
+        /// Storage for GSR sensor values.
+        /// </summary>
+        public CircularBuffer GsrBuffer
+        {
+            get { return _GsrBuffer; }
+            set { SetProperty(_GsrBuffer, value, () => _GsrBuffer = value); }
+        }
         #endregion
 
         #region Delegates
-        /// <summary>
-        /// Indicates that new sensor reading has arrived.
-        /// </summary>
-        /// <remarks>
-        /// <para>This event is invoked from within a call to <see cref="GetHeartRate"/> or <see cref="GetGsr"/>. Handlers for this event should not call in those methods.</para>
-        /// </remarks>
-        public Action<SensorData> NewSensorData { get; set; }
+        ///// <summary>
+        ///// Indicates that new sensor reading has arrived.
+        ///// </summary>
+        ///// <remarks>
+        ///// <para>This event is invoked from within a call to <see cref="GetHeartRate"/> or <see cref="GetGsr"/>. Handlers for this event should not call in those methods.</para>
+        ///// </remarks>
+        //public Action<SensorData> NewSensorData { get; set; }
         #endregion
 
         #region Constructors
@@ -90,10 +120,13 @@ namespace BandBridge.ViewModels
         /// </summary>
         /// <param name="bandClient"><see cref="IBandClient"/> object connected with Band device</param>
         /// <param name="bandName">Band device name</param>
-        public BandData(IBandClient bandClient, string bandName)
+        /// <param name="storageSize">HR and GSR storage size</param>
+        public BandData(IBandClient bandClient, string bandName, int storageSize)
         {
             BandClient = bandClient;
             Name = bandName;
+            HrBuffer = new CircularBuffer(storageSize);
+            GsrBuffer = new CircularBuffer(storageSize);
         }
         #endregion
 
@@ -112,14 +145,16 @@ namespace BandBridge.ViewModels
             // hook up to the Heartrate sensor ReadingChanged event
             BandClient.SensorManager.HeartRate.ReadingChanged += async (sender, args) =>
             {
-                // we've gotten new reading from sensor:
-                if (NewSensorData != null)
-                    NewSensorData(new SensorData(SensorCode.HR, args.SensorReading.HeartRate));   // ----------------------------------------------
+                //// we've gotten new reading from sensor:
+                //if (NewSensorData != null)
+                //    NewSensorData(new SensorData(SensorCode.HR, args.SensorReading.HeartRate));   // ----------------------------------------------
 
                 // update app GUI info:
                 await CoreApplication.MainView.CoreWindow.Dispatcher.RunAsync(CoreDispatcherPriority.Normal, () =>
                  {
                      HrReading = args.SensorReading.HeartRate;
+                     HrBuffer.Add(args.SensorReading.HeartRate);
+                     //Debug.WriteLine(Name + " - HrBuffer: " + HrBuffer);
                  });
             };
             // start the Heartrate sensor:
@@ -148,14 +183,16 @@ namespace BandBridge.ViewModels
             // hook up to the Gsr sensor ReadingChanged event:
             BandClient.SensorManager.Gsr.ReadingChanged += async (sender, args) =>
             {
-                // we've gotten new reading from sensor:
-                if (NewSensorData != null)
-                    NewSensorData(new SensorData(SensorCode.GSR, args.SensorReading.Resistance)); // ------------------------------------------
+                //// we've gotten new reading from sensor:
+                //if (NewSensorData != null)
+                //    NewSensorData(new SensorData(SensorCode.GSR, args.SensorReading.Resistance)); // ------------------------------------------
 
                 // update app GUI info:
                 await CoreApplication.MainView.CoreWindow.Dispatcher.RunAsync(CoreDispatcherPriority.Normal, () =>
                 {
                     GsrReading = args.SensorReading.Resistance;
+                    GsrBuffer.Add(args.SensorReading.Resistance);
+                    //Debug.WriteLine(Name + " - GsrBuffer: " + GsrBuffer);
                 });
             };
             // start the GSR sensor:

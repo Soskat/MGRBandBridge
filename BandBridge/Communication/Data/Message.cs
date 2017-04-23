@@ -15,7 +15,8 @@ namespace Communication.Data
         /// <summary>
         /// An array with types known by DataContractSerializer.
         /// </summary>
-        public static Type[] SerializedTypesSet = { typeof(SensorData), typeof(PairRequest) };
+        public static Type[] SerializedTypesSet = { typeof(SensorData) };
+        //public static Type[] SerializedTypesSet = { typeof(SensorData), typeof(PairRequest) };
         #endregion
 
         #region Properties
@@ -76,7 +77,8 @@ namespace Communication.Data
             using (MemoryStream stream = new MemoryStream(data))
             using (XmlDictionaryReader reader = XmlDictionaryReader.CreateBinaryReader(stream, XmlDictionaryReaderQuotas.Max))
             {
-                DataContractSerializer deserializer = new DataContractSerializer(typeof(Message), new Type[] { typeof(SensorData), typeof(PairRequest) });
+                DataContractSerializer deserializer = new DataContractSerializer(typeof(Message), SerializedTypesSet);
+                //DataContractSerializer deserializer = new DataContractSerializer(typeof(Message), new Type[] { typeof(SensorData), typeof(PairRequest) });
                 message = (Message)deserializer.ReadObject(reader);
             }
             return message;
