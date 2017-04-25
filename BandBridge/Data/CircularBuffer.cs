@@ -59,7 +59,7 @@ namespace BandBridge.Data
         /// <summary>
         /// Writes all buffer elements in form of: [a1 | a2 | ... an | ]
         /// </summary>
-        /// <returns></returns>
+        /// <returns>CircularBuffer in string format</returns>
         public override string ToString()
         {
             StringBuilder sb = new StringBuilder("[ ");

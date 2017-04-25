@@ -16,7 +16,7 @@ namespace BandBridge.ViewModels
     {
         #region Fields
         /// <summary>C
-        /// onnected MS Band device.
+        /// Connected MS Band device.
         /// </summary>
         private IBandClient _BandClient;
 
@@ -34,7 +34,6 @@ namespace BandBridge.ViewModels
         /// Last GSR sensor reading.
         /// </summary>
         private int _GsrReading;
-
 
         /// <summary>
         /// Storage for Heart Rate sensor values.
@@ -84,7 +83,6 @@ namespace BandBridge.ViewModels
             set { SetProperty(_GsrReading, value, () => _GsrReading = value); }
         }
 
-
         /// <summary>
         /// Storage for Heart Rate sensor values.
         /// </summary>
@@ -103,17 +101,7 @@ namespace BandBridge.ViewModels
             set { SetProperty(_GsrBuffer, value, () => _GsrBuffer = value); }
         }
         #endregion
-
-        #region Delegates
-        ///// <summary>
-        ///// Indicates that new sensor reading has arrived.
-        ///// </summary>
-        ///// <remarks>
-        ///// <para>This event is invoked from within a call to <see cref="GetHeartRate"/> or <see cref="GetGsr"/>. Handlers for this event should not call in those methods.</para>
-        ///// </remarks>
-        //public Action<SensorData> NewSensorData { get; set; }
-        #endregion
-
+        
         #region Constructors
         /// <summary>
         /// Creates a new instance of class <see cref="BandData"/>.
@@ -130,7 +118,7 @@ namespace BandBridge.ViewModels
         }
         #endregion
 
-        #region Methods
+        #region Private methods
         /// <summary>
         /// Gets Hear Rate sensor values from connected Band device.
         /// </summary>
@@ -145,16 +133,11 @@ namespace BandBridge.ViewModels
             // hook up to the Heartrate sensor ReadingChanged event
             BandClient.SensorManager.HeartRate.ReadingChanged += async (sender, args) =>
             {
-                //// we've gotten new reading from sensor:
-                //if (NewSensorData != null)
-                //    NewSensorData(new SensorData(SensorCode.HR, args.SensorReading.HeartRate));   // ----------------------------------------------
-
                 // update app GUI info:
                 await CoreApplication.MainView.CoreWindow.Dispatcher.RunAsync(CoreDispatcherPriority.Normal, () =>
                  {
                      HrReading = args.SensorReading.HeartRate;
                      HrBuffer.Add(args.SensorReading.HeartRate);
-                     //Debug.WriteLine(Name + " - HrBuffer: " + HrBuffer);
                  });
             };
             // start the Heartrate sensor:
@@ -183,16 +166,11 @@ namespace BandBridge.ViewModels
             // hook up to the Gsr sensor ReadingChanged event:
             BandClient.SensorManager.Gsr.ReadingChanged += async (sender, args) =>
             {
-                //// we've gotten new reading from sensor:
-                //if (NewSensorData != null)
-                //    NewSensorData(new SensorData(SensorCode.GSR, args.SensorReading.Resistance)); // ------------------------------------------
-
                 // update app GUI info:
                 await CoreApplication.MainView.CoreWindow.Dispatcher.RunAsync(CoreDispatcherPriority.Normal, () =>
                 {
                     GsrReading = args.SensorReading.Resistance;
                     GsrBuffer.Add(args.SensorReading.Resistance);
-                    //Debug.WriteLine(Name + " - GsrBuffer: " + GsrBuffer);
                 });
             };
             // start the GSR sensor:
@@ -207,6 +185,10 @@ namespace BandBridge.ViewModels
             }
         }
 
+        /// <summary>
+        /// Stops reading from connected Band's Heart Rate sensor.
+        /// </summary>
+        /// <returns></returns>
         private async Task StopHrReading()
         {
             // stop the HR sensor:
@@ -221,6 +203,10 @@ namespace BandBridge.ViewModels
             }
         }
 
+        /// <summary>
+        /// Stops reading from connected Band's Galvanic Skin Response sensor.
+        /// </summary>
+        /// <returns></returns>
         private async Task StopGsrReading()
         {
             // stop the GSR sensor:
@@ -234,9 +220,13 @@ namespace BandBridge.ViewModels
                 Debug.WriteLine(ex.Message);
             }
         }
+        #endregion
 
-
-
+        #region Public methods
+        /// <summary>
+        /// Starts reading data from connected Band's sensors.
+        /// </summary>
+        /// <returns></returns>
         public async Task StartReadingSensorsData()
         {
             await StartHrReading();
@@ -244,6 +234,10 @@ namespace BandBridge.ViewModels
             Debug.WriteLine("__Started reading data__");
         }
 
+        /// <summary>
+        /// Stops reading data from connected Band's sensors.
+        /// </summary>
+        /// <returns></returns>
         public async Task StopReadingSensorsData()
         {
             await StopHrReading();
