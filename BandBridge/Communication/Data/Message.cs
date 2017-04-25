@@ -16,7 +16,6 @@ namespace Communication.Data
         /// An array with types known by DataContractSerializer.
         /// </summary>
         public static Type[] SerializedTypesSet = { typeof(SensorData), typeof(SensorData[]) };
-        //public static Type[] SerializedTypesSet = { typeof(SensorData), typeof(PairRequest) };
         #endregion
 
         #region Properties
@@ -25,7 +24,7 @@ namespace Communication.Data
         /// </summary>
         [DataMember]
         public MessageCode Code { get; set; }
-        
+
         /// <summary>
         /// Message result object.
         /// </summary>
@@ -51,7 +50,7 @@ namespace Communication.Data
         /// Serializes <see cref="Message"/> object to a byte array.
         /// </summary>
         /// <param name="message">Message to serialize</param>
-        /// <returns>Serialized message</returns>
+        /// <returns>Serialized message in form of an array of bytes</returns>
         public static byte[] Serialize(Message message)
         {
             byte[] data = null;
@@ -69,7 +68,7 @@ namespace Communication.Data
         /// <summary>
         /// Deserializes byte array as <see cref="Message"/> object.
         /// </summary>
-        /// <param name="data">Array of bytes</param>
+        /// <param name="data">Array of bytes with serialized message</param>
         /// <returns>Deserialized message</returns>
         public static Message Deserialize(byte[] data)
         {
@@ -78,7 +77,6 @@ namespace Communication.Data
             using (XmlDictionaryReader reader = XmlDictionaryReader.CreateBinaryReader(stream, XmlDictionaryReaderQuotas.Max))
             {
                 DataContractSerializer deserializer = new DataContractSerializer(typeof(Message), SerializedTypesSet);
-                //DataContractSerializer deserializer = new DataContractSerializer(typeof(Message), new Type[] { typeof(SensorData), typeof(PairRequest) });
                 message = (Message)deserializer.ReadObject(reader);
             }
             return message;
@@ -87,7 +85,7 @@ namespace Communication.Data
         /// <summary>
         /// Writes Message object in form: 'Message: [Code][Result] -> Result.ToString()'.
         /// </summary>
-        /// <returns></returns>
+        /// <returns>String version of the <see cref="Message"/> object</returns>
         public override string ToString()
         {
             if (Result != null)
@@ -97,5 +95,4 @@ namespace Communication.Data
         }
         #endregion
     }
-
 }

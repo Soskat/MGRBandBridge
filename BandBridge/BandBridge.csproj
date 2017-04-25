@@ -99,7 +99,6 @@
       <DependentUpon>App.xaml</DependentUpon>
     </Compile>
     <Compile Include="Communication\Data\MessageCode.cs" />
-    <Compile Include="Communication\Data\PairRequest.cs" />
     <Compile Include="Communication\Data\SensorCode.cs" />
     <Compile Include="Converters\InverseBooleanConverter.cs" />
     <Compile Include="Communication\Packet\PacketProtocol.cs" />

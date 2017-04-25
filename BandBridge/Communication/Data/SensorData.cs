@@ -39,7 +39,7 @@ namespace Communication.Data
         /// <summary>
         /// Writes SensorData object in form: '[Code][Data]'.
         /// </summary>
-        /// <returns></returns>
+        /// <returns>String version of the <see cref="SensorData"/> object</returns>
         public override string ToString()
         {
             return string.Format("[{0}][{1}]", Code, Data);

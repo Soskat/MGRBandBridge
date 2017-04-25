@@ -84,7 +84,7 @@ namespace Communication.Packet
         /// <para>This event is invoked from within a call to <see cref="DataReceived"/>. Handlers for this event should not call <see cref="DataReceived"/>.</para>
         /// </remarks>
         public Action<byte[]> MessageArrived { get; set; }
-        
+
 
         /// <summary>
         /// Signal that all bytes of incoming message were received, even if the message came in several packets.
@@ -171,8 +171,7 @@ namespace Communication.Packet
 
                     // Another sanity check is needed here for very large packets, to prevent denial-of-service attacks
                     if (this.maxMessageSize > 0 && length > this.maxMessageSize)
-                        throw new System.Net.ProtocolViolationException("Message length " + length.ToString(System.Globalization.CultureInfo.InvariantCulture) 
-                                                                        + " is larger than maximum message size " + this.maxMessageSize.ToString(System.Globalization.CultureInfo.InvariantCulture));
+                        throw new System.Net.ProtocolViolationException("Message length " + length.ToString(System.Globalization.CultureInfo.InvariantCulture) + " is larger than maximum message size " + this.maxMessageSize.ToString(System.Globalization.CultureInfo.InvariantCulture));
 
                     // Zero-length packets are allowed as keepalives
                     if (length == 0)
