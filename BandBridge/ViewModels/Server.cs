@@ -1,5 +1,4 @@
-﻿using BandBridge.Data;
-using Communication.Data;
+﻿using Communication.Data;
 using Communication.Packet;
 using FakeBand.Fakes;
 using Microsoft.Band;
@@ -36,16 +35,11 @@ namespace BandBridge.ViewModels
         /// Server <see cref="StreamSocketListener"/> object.
         /// </summary>
         private StreamSocketListener _ServerSocketListener;
-
-        ///// <summary>
-        ///// BandData buffers storage size.
-        ///// </summary>
-        //private int _StorageSize;
-
+        
         /// <summary>
         /// Fake Bands amount.
         /// </summary>
-        private int _FakeBandsAmount;
+        private int _FakeBandsAmount = 6;
         
         /// <summary>
         /// Dictionary of connected Band devices.
@@ -56,24 +50,17 @@ namespace BandBridge.ViewModels
         /// List of connected Bands data.
         /// </summary>
         private ObservableCollection<BandData> _ConnectedBandsCollection;
-
-        ///// <summary>
-        ///// Dictionary of client-Band pairs.
-        ///// </summary>
-        //private Dictionary<string, ClientInfo> clientBandPairs;
-
+        
         /// <summary>
         /// Is server working?
         /// </summary>
         private bool _IsServerWorking;
-
-
+        
         /// <summary>
         /// Band data buffer size.
         /// </summary>
         private int _BandBufferSize = 16;
-
-
+        
         /// <summary>
         /// Received message.
         /// </summary>
@@ -135,9 +122,7 @@ namespace BandBridge.ViewModels
             get { return _IsServerWorking; }
             set { SetProperty(_IsServerWorking, value, () => _IsServerWorking = value); }
         }
-
-
-
+        
         /// <summary>
         /// Band data buffer size.
         /// </summary>
@@ -156,7 +141,7 @@ namespace BandBridge.ViewModels
         public Server(string servicePort)
         {
             ServicePort = servicePort;
-            FakeBandsAmount = 6;
+            //FakeBandsAmount = 6;
             IsServerWorking = false;
             // get host's IPv4 address:
             LocalHost = Array.Find(NetworkInformation.GetHostNames().ToArray(),
@@ -164,15 +149,13 @@ namespace BandBridge.ViewModels
         }
         #endregion
 
-        #region Methods
+        #region Public methods
         /// <summary>
-        /// Set ups and starts the server.
+        /// Set-ups and starts the server.
         /// </summary>
-        /// <returns>Asynchronous operation</returns>
+        /// <returns></returns>
         public async Task StartServer()
         {
-            Debug.WriteLine(">> Try to start the server...");
-
             try
             {
                 // Create a StreamSocketListener to start listening for TCP connections:
@@ -185,8 +168,7 @@ namespace BandBridge.ViewModels
                 // Start listening for incoming TCP connections on the specified port:
                 await _ServerSocketListener.BindServiceNameAsync(ServicePort);
 
-                IsServerWorking = true;
-                
+                IsServerWorking = true;                
                 Debug.WriteLine("Waiting for connections...");
             }
             catch (Exception e)
@@ -198,23 +180,18 @@ namespace BandBridge.ViewModels
         /// <summary>
         /// Stops the server.
         /// </summary>
-        /// <returns>Asynchronous operation</returns>
+        /// <returns></returns>
         public void StopServer()
         {
-            Debug.WriteLine(">> Try to stop the server...");
-
             try
             {
                 // explicitly close the socketListener:
                 if (_ServerSocketListener != null)
                 {
-                    //await socketListener.CancelIOAsync();
                     _ServerSocketListener.Dispose();
                     _ServerSocketListener = null;
-
                     IsServerWorking = false;
                 }
-                Debug.WriteLine(">> Server closed...");
             }
             catch (Exception e)
             {
@@ -223,108 +200,9 @@ namespace BandBridge.ViewModels
         }
 
         /// <summary>
-        /// Server behaviour on receiving a connection with remote client.
-        /// </summary>
-        /// <param name="sender"></param>
-        /// <param name="args"></param>
-        private async void SocketListener_ConnectionReceived(StreamSocketListener sender, StreamSocketListenerConnectionReceivedEventArgs args)
-        {
-            try
-            {
-                Debug.WriteLine("Connection received from " + args.Socket.Information.RemoteAddress);
-
-                receiveBuffer = new byte[bufferSize];
-
-                PacketProtocol packetizer = new PacketProtocol(2048);
-                packetizer.MessageArrived += receivedMessage =>
-                {
-                    Debug.Write(":: Received bytes: " + receivedMessage.Length + "  => ");
-                    if (receivedMessage.Length > 0)
-                    {
-                        Debug.WriteLine("deserialize message");
-                        message = Message.Deserialize(receivedMessage);
-                        Debug.WriteLine("Received: " + message);
-                    }
-                    //else Debug.WriteLine("keepalive message");
-                };
-
-                //Read data from the remote client.
-                Stream inStream = args.Socket.InputStream.AsStreamForRead();
-                while (!packetizer.AllBytesReceived)
-                {
-                    await inStream.ReadAsync(receiveBuffer, 0, bufferSize);
-                    packetizer.DataReceived(receiveBuffer);
-                }
-                Debug.WriteLine("---------------------------------------------------------");
-                Debug.WriteLine("__Received: " + message);
-
-                // Prepare response:
-                Message response = await PrepareResponseToClient(message);
-                byte[] byteData = PacketProtocol.WrapMessage(Message.Serialize(response));
-
-                //Send the response to the remote client.
-                Stream outStream = args.Socket.OutputStream.AsStreamForWrite();
-                await outStream.WriteAsync(byteData, 0, byteData.Length);
-                await outStream.FlushAsync();
-                Debug.WriteLine("__Sent back: " + response);
-                Debug.WriteLine("---------------------------------------------------------");
-
-            }
-            catch (Exception ex)
-            {
-                Debug.WriteLine(ex.Message);
-            }
-        }
-
-        ///// <summary>
-        ///// Sends a message to specified remote host.
-        ///// </summary>
-        ///// <param name="clientInfo">Remote host's info</param>
-        ///// <param name="message">Message to send</param>
-        //private async void SendDataToPairedClient(string sender, ClientInfo clientInfo, Message message)
-        //{
-        //    try
-        //    {
-        //        // make sure if clientInfo exists:
-        //        if (clientInfo == null)
-        //            return;
-
-        //        // Create the StreamSocket and establish a connection to remote server:
-        //        StreamSocket socket = new StreamSocket();
-
-        //        // Prepare data for sending:
-        //        byte[] byteData = PacketProtocol.WrapMessage(Message.Serialize(message));
-
-        //        // Connect to remote host:
-        //        await socket.ConnectAsync(new HostName(clientInfo.ClientAddress), clientInfo.Port.ToString());
-
-        //        // Write data to the remote server.
-        //        Stream outStream = socket.OutputStream.AsStreamForWrite();
-        //        await outStream.WriteAsync(byteData, 0, byteData.Length);
-        //        await outStream.FlushAsync();
-
-        //        Debug.WriteLine(string.Format("Send {0} to {1}:{2}", message, clientInfo.ClientAddress, clientInfo.Port));
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        // lost connection to remote host:
-        //        Debug.WriteLine(ex.Message);
-        //        //Debug.WriteLine(ex.ToString());
-        //        Debug.WriteLine("BukaBEFORE: " + sender + ":" + clientBandPairs[sender]);
-        //        lock (clientBandPairs)
-        //        {
-        //            clientBandPairs[sender] = null;
-        //        }
-        //        Debug.WriteLine("BukaAFTER: " + sender + ":" + clientBandPairs[sender]);
-        //        await _ConnectedBands[sender].StopReadingSensorsData();
-        //    }
-        //}
-
-
-
-        /// <summary>
         /// Gets MS Band devices connected to local computer.
         /// </summary>
+        /// <returns></returns>
         public async Task GetMSBandDevices()
         {
             Debug.WriteLine(">> Get MS Band devices...");
@@ -377,9 +255,6 @@ namespace BandBridge.ViewModels
                             tempCB.Add(pairedBands[i].Name, bandData);
 
                             await bandData.StartReadingSensorsData();
-
-                            //// starts reading sensor data:
-                            //await bandData.StartReadingSensorsData();
                         }
                     }
                 }
@@ -394,13 +269,12 @@ namespace BandBridge.ViewModels
 
             // update ObservableCollection of connected Bands:
             SetupBandsListView();
-            //// update client-Bands pairs list:
-            //UpdateClientBandPairsList();
         }
 
         /// <summary>
         /// Generates <see cref="FakeBandsAmount"/> number of Fake Bands.
         /// </summary>
+        /// <returns></returns>
         public async Task GetFakeBands()
         {
             Debug.WriteLine(">> Get Fake Bands...");
@@ -439,22 +313,66 @@ namespace BandBridge.ViewModels
                     _ConnectedBands.Add(band.Name, bandData);
 
                     await bandData.StartReadingSensorsData();
-
-
-                    //// starts reading sensor data:
-                    //await bandData.StartReadingSensorsData();
                 }
             }
 
             // update ObservableCollection of connected Bands:
             SetupBandsListView();
-            //// update client-Bands pairs list:
-            //UpdateClientBandPairsList();
-
-            // TEST------ TEST------ TEST
-            //Test();
         }
-        
+        #endregion
+
+        #region Private methods
+        /// <summary>
+        /// Server behaviour on receiving a connection with remote client.
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="args"></param>
+        private async void SocketListener_ConnectionReceived(StreamSocketListener sender, StreamSocketListenerConnectionReceivedEventArgs args)
+        {
+            try
+            {
+                //Debug.WriteLine("Connection received from " + args.Socket.Information.RemoteAddress);
+                receiveBuffer = new byte[bufferSize];
+
+                PacketProtocol packetizer = new PacketProtocol(2048);
+                packetizer.MessageArrived += receivedMessage =>
+                {
+                    Debug.Write(":: Received bytes: " + receivedMessage.Length + "  => ");
+                    if (receivedMessage.Length > 0)
+                    {
+                        Debug.WriteLine("deserialize message");
+                        message = Message.Deserialize(receivedMessage);
+                        Debug.WriteLine("Received: " + message);
+                    }
+                };
+
+                //Read data from the remote client.
+                Stream inStream = args.Socket.InputStream.AsStreamForRead();
+                while (!packetizer.AllBytesReceived)
+                {
+                    await inStream.ReadAsync(receiveBuffer, 0, bufferSize);
+                    packetizer.DataReceived(receiveBuffer);
+                }
+                Debug.WriteLine("---------------------------------------------------------");
+                Debug.WriteLine("__Received: " + message);
+
+                // Prepare response:
+                Message response = await PrepareResponseToClient(message);
+                byte[] byteData = PacketProtocol.WrapMessage(Message.Serialize(response));
+
+                //Send the response to the remote client.
+                Stream outStream = args.Socket.OutputStream.AsStreamForWrite();
+                await outStream.WriteAsync(byteData, 0, byteData.Length);
+                await outStream.FlushAsync();
+                Debug.WriteLine("__Sent back: " + response);
+                Debug.WriteLine("---------------------------------------------------------");
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine(ex.Message);
+            }
+        }
+
         /// <summary>
         /// Sets up currently connected Band devices list.
         /// </summary>
@@ -473,42 +391,11 @@ namespace BandBridge.ViewModels
             }
         }
 
-        ///// <summary>
-        ///// Updates dictionary that contains client-Band pairs.
-        ///// </summary>
-        //private void UpdateClientBandPairsList()
-        //{
-        //    // make sure that clientBandPairs dictionary exists:
-        //    if (clientBandPairs == null)
-        //        clientBandPairs = new Dictionary<string, ClientInfo>();
-
-        //    Dictionary<string, ClientInfo> temp = new Dictionary<string, ClientInfo>();
-
-        //    // check if there are already some Bands which are paired with some remote clients:
-        //    foreach (var kvp in _ConnectedBands)
-        //    {
-        //        if (clientBandPairs.ContainsKey(kvp.Key))
-        //        {
-        //            temp.Add(kvp.Key, clientBandPairs[kvp.Key]);
-        //        }
-        //        else
-        //        {
-        //            temp.Add(kvp.Key, null);
-        //            // set up actions on new reading arrived:
-        //            kvp.Value.NewSensorData += newReading =>
-        //            {
-        //                Message msg = new Message(MessageCode.BAND_DATA, newReading);
-        //                Debug.WriteLine(kvp.Key + " : " + temp[kvp.Key] + newReading);
-        //                SendDataToPairedClient(kvp.Key, temp[kvp.Key], msg);
-        //            };
-        //        }
-        //    }
-
-        //    // update client-Bands pairs list:
-        //    clientBandPairs = temp;
-        //}
-        
-
+        /// <summary>
+        /// Prepares response to given message.
+        /// </summary>
+        /// <param name="message">Received message</param>
+        /// <returns>Response to send</returns>
         private async Task<Message> PrepareResponseToClient(Message message)
         {
             switch (message.Code)
@@ -519,7 +406,7 @@ namespace BandBridge.ViewModels
                         return new Message(MessageCode.SHOW_LIST_ANS, _ConnectedBands.Keys.ToArray());
                     else
                         return new Message(MessageCode.SHOW_LIST_ANS, null);
-                
+
                 // send current sensors data from specific Band device:
                 case MessageCode.GET_DATA_ASK:
                     if (_ConnectedBands != null && message.Result != null && message.Result.GetType() == typeof(string))
@@ -535,80 +422,12 @@ namespace BandBridge.ViewModels
                             return new Message(MessageCode.GET_DATA_ANS, null);
                     }
                     return new Message(MessageCode.CTR_MSG, null);
-                //// pair with specified Band request from connected client:
-                //case MessageCode.PAIR_BAND_ASK:
-                //    if (message.Result != null && message.Result.GetType() == typeof(PairRequest))
-                //    {
-                //        if (clientBandPairs.ContainsKey(((PairRequest)message.Result).BandName))
-                //        {
-                //            try
-                //            {
-                //                // update pair info about remote host:
-                //                ClientInfo clientInfo = new ClientInfo(
-                //                                                       ((PairRequest)message.Result).ClientAddress,
-                //                                                       ((PairRequest)message.Result).OpenPort
-                //                                                      );
-                //                clientBandPairs[((PairRequest)message.Result).BandName] = clientInfo;
-
-                //                // start reading from sensors:
-                //                await _ConnectedBands[((PairRequest)message.Result).BandName].StartReadingSensorsData();
-
-                //                return new Message(MessageCode.PAIR_BAND_ANS, true);
-
-                //            }
-                //            catch (Exception ex)
-                //            {
-                //                Debug.WriteLine(ex);
-                //                return new Message(MessageCode.CTR_MSG, null);
-                //            }
-                //        }
-                //        return new Message(MessageCode.PAIR_BAND_ANS, false);
-                //    }
-                //    return new Message(MessageCode.CTR_MSG, null);
-
-                //// free paired Band request from connected client:
-                //case MessageCode.FREE_BAND_ASK:
-                //    if (message.Result != null && message.Result.GetType() == typeof(string))
-                //    {
-                //        try
-                //        {
-                //            if (clientBandPairs.ContainsKey((string)message.Result))
-                //            {
-                //                // reset pair info about remote host:
-                //                clientBandPairs[(string)message.Result] = null;
-
-                //                // stop reading from sensors:
-                //                await _ConnectedBands[(string)message.Result].StopReadingSensorsData();
-                //                Debug.WriteLine((string)message.Result + ": stopped reading sensors");
-                //            }
-                //            return new Message(MessageCode.FREE_BAND_ANS, null);
-
-                //        }
-                //        catch (Exception ex)
-                //        {
-                //            Debug.WriteLine(ex);
-                //            return new Message(MessageCode.CTR_MSG, null);
-                //        }
-                //    }
-                //    return new Message(MessageCode.CTR_MSG, null);
 
                 // wrong message code:
                 default:
                     return new Message(MessageCode.CTR_MSG, null);
             }
         }
-
         #endregion
-
-
-
-        //private void Test()
-        //{
-        //    if (clientBandPairs != null && clientBandPairs.Count > 0)
-        //    {
-        //        clientBandPairs["Fake Band 1"] = new ClientInfo("ROGwolf", 2066);
-        //        _ConnectedBands["Fake Band 1"].StartReadingSensorsData();
-        //    }
-        //}
     }
 }
