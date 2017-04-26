@@ -48,12 +48,16 @@ namespace BandBridge.Data
         /// <returns>The average of values stored in buffer</returns>
         public int GetAverage()
         {
-            int sum = 0;
+            int sum = 0, itemsCount = 0;
             foreach (int obj in buffer)
             {
-                sum += obj;
+                if(obj > 0)
+                {
+                    sum += obj;
+                    itemsCount++;
+                }
             }
-            return sum / buffer.Length;
+            return sum / itemsCount;
         }
 
         /// <summary>
