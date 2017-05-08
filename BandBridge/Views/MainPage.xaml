@@ -57,6 +57,7 @@
                 <RowDefinition Height="*"/>
                 <RowDefinition Height="*"/>
                 <RowDefinition Height="*"/>
+                <RowDefinition Height="*"/>
             </Grid.RowDefinitions>
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="auto"/>
@@ -80,12 +81,18 @@
                      Style="{StaticResource ServerInfoTextBox}"/>
 
             <TextBlock Grid.Row="3" Grid.Column="0"
-                       Style="{StaticResource ServerInfoTextBlock}">Data buffer limit:</TextBlock>
+                       Style="{StaticResource ServerInfoTextBlock}">Data buffer size:</TextBlock>
             <TextBox Grid.Row="3" Grid.Column="1"
                      Text="{x:Bind ServerVM.BandBufferSize, Mode=TwoWay}"
                      Style="{StaticResource ServerInfoTextBox}"/>
+            
+            <TextBlock Grid.Row="4" Grid.Column="0"
+                       Style="{StaticResource ServerInfoTextBlock}">Calibration buffer size:</TextBlock>
+            <TextBox Grid.Row="4" Grid.Column="1"
+                     Text="{x:Bind ServerVM.CalibrationBufferSize, Mode=TwoWay}"
+                     Style="{StaticResource ServerInfoTextBox}"/>
 
-            <StackPanel Grid.Row="1" Grid.RowSpan="3" Grid.Column="2"
+            <StackPanel Grid.Row="1" Grid.RowSpan="4" Grid.Column="2"
                         VerticalAlignment="Center">
                 <Button Content="Start Server"
                         Click="{x:Bind ServerVM.StartServer}"

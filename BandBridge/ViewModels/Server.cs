@@ -60,7 +60,12 @@ namespace BandBridge.ViewModels
         /// Band data buffer size.
         /// </summary>
         private int _BandBufferSize = 16;
-        
+
+        /// <summary>
+        /// Calibration data buffer size.
+        /// </summary>
+        private int _CalibrationBufferSize = 100;
+
         /// <summary>
         /// Received message.
         /// </summary>
@@ -130,6 +135,15 @@ namespace BandBridge.ViewModels
         {
             get { return _BandBufferSize; }
             set { SetProperty(_BandBufferSize, value, () => _BandBufferSize = value); }
+        }
+
+        /// <summary>
+        /// Calibration data buffer size.
+        /// </summary>
+        public int CalibrationBufferSize
+        {
+            get { return _CalibrationBufferSize; }
+            set { SetProperty(_CalibrationBufferSize, value, () => _CalibrationBufferSize = value); }
         }
         #endregion
 
@@ -420,6 +434,24 @@ namespace BandBridge.ViewModels
                         }
                         else
                             return new Message(MessageCode.GET_DATA_ANS, null);
+                    }
+                    return new Message(MessageCode.CTR_MSG, null);
+
+                // callibrate sensors data to get control average values:
+                case MessageCode.CALIB_ASK:
+                    if (_ConnectedBands != null && message.Result != null && message.Result.GetType() == typeof(string))
+                    {
+                        if (_ConnectedBands.ContainsKey((string)message.Result))
+                        {
+                            // get current sensors data and send them back to remote client:
+
+                            //SensorData hrData = new SensorData(SensorCode.HR, _ConnectedBands[(string)message.Result].HrBuffer.GetAverage());
+                            //SensorData gsrData = new SensorData(SensorCode.HR, _ConnectedBands[(string)message.Result].GsrBuffer.GetAverage());
+
+                            return new Message(MessageCode.CALIB_ANS, new SensorData[] { hrData, gsrData });
+                        }
+                        else
+                            return new Message(MessageCode.CALIB_ANS, null);
                     }
                     return new Message(MessageCode.CTR_MSG, null);
 
