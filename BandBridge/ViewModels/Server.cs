@@ -265,7 +265,7 @@ namespace BandBridge.ViewModels
                         if (bandClient != null)
                         {
                             // add new Band to collection:
-                            BandData bandData = new BandData(bandClient, pairedBands[i].Name, BandBufferSize);
+                            BandData bandData = new BandData(bandClient, pairedBands[i].Name, bandBufferSize, calibrationBufferSize);
                             tempCB.Add(pairedBands[i].Name, bandData);
 
                             await bandData.StartReadingSensorsData();
@@ -323,7 +323,7 @@ namespace BandBridge.ViewModels
                 if (bandClient != null)
                 {
                     // add new Band to collection:
-                    BandData bandData = new BandData(bandClient, band.Name, BandBufferSize);
+                    BandData bandData = new BandData(bandClient, band.Name, bandBufferSize, calibrationBufferSize);
                     connectedBands.Add(band.Name, bandData);
 
                     await bandData.StartReadingSensorsData();

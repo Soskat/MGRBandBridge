@@ -36,6 +36,16 @@ namespace BandBridge.ViewModels
         private int gsrReading;
 
         /// <summary>
+        /// Size of the buffer for incoming sensors readings.
+        /// </summary>
+        private int bufferSize;
+
+        /// <summary>
+        /// Size of the buffer for calibration sensors readings.
+        /// </summary>
+        private int calibrationBufferSize;
+
+        /// <summary>
         /// Storage for Heart Rate sensor values.
         /// </summary>
         private CircularBuffer hrBuffer;
@@ -101,20 +111,23 @@ namespace BandBridge.ViewModels
             set { SetProperty(gsrBuffer, value, () => gsrBuffer = value); }
         }
         #endregion
-        
+
         #region Constructors
         /// <summary>
         /// Creates a new instance of class <see cref="BandData"/>.
         /// </summary>
         /// <param name="bandClient"><see cref="IBandClient"/> object connected with Band device</param>
         /// <param name="bandName">Band device name</param>
-        /// <param name="storageSize">HR and GSR storage size</param>
-        public BandData(IBandClient bandClient, string bandName, int storageSize)
+        /// <param name="bufferSize">Size of the buffer for incoming sensors readings</param>
+        /// <param name="calibrationBufferSize">Size of the buffer for calibration sensors readings</param>
+        public BandData(IBandClient bandClient, string bandName, int bufferSize, int calibrationBufferSize)
         {
             BandClient = bandClient;
             Name = bandName;
-            HrBuffer = new CircularBuffer(storageSize);
-            GsrBuffer = new CircularBuffer(storageSize);
+            this.bufferSize = bufferSize;
+            this.calibrationBufferSize = calibrationBufferSize;
+            HrBuffer = new CircularBuffer(this.bufferSize);
+            GsrBuffer = new CircularBuffer(this.bufferSize);
         }
         #endregion
 
@@ -133,11 +146,11 @@ namespace BandBridge.ViewModels
             // hook up to the Heartrate sensor ReadingChanged event
             BandClient.SensorManager.HeartRate.ReadingChanged += async (sender, args) =>
             {
+                HrBuffer.Add(args.SensorReading.HeartRate);
                 // update app GUI info:
                 await CoreApplication.MainView.CoreWindow.Dispatcher.RunAsync(CoreDispatcherPriority.Normal, () =>
                  {
                      HrReading = args.SensorReading.HeartRate;
-                     HrBuffer.Add(args.SensorReading.HeartRate);
                  });
             };
             // start the Heartrate sensor:
@@ -166,11 +179,11 @@ namespace BandBridge.ViewModels
             // hook up to the Gsr sensor ReadingChanged event:
             BandClient.SensorManager.Gsr.ReadingChanged += async (sender, args) =>
             {
+                GsrBuffer.Add(args.SensorReading.Resistance);
                 // update app GUI info:
                 await CoreApplication.MainView.CoreWindow.Dispatcher.RunAsync(CoreDispatcherPriority.Normal, () =>
                 {
                     GsrReading = args.SensorReading.Resistance;
-                    GsrBuffer.Add(args.SensorReading.Resistance);
                 });
             };
             // start the GSR sensor:
@@ -191,9 +204,9 @@ namespace BandBridge.ViewModels
         /// <returns></returns>
         private async Task StopHrReading()
         {
-            // stop the HR sensor:
             try
             {
+                // stop the HR sensor:
                 await BandClient.SensorManager.HeartRate.StopReadingsAsync();
                 Debug.WriteLine(name + ": Stopped HR reading");
             }
@@ -209,9 +222,9 @@ namespace BandBridge.ViewModels
         /// <returns></returns>
         private async Task StopGsrReading()
         {
-            // stop the GSR sensor:
             try
             {
+                // stop the GSR sensor:
                 await BandClient.SensorManager.Gsr.StopReadingsAsync();
                 Debug.WriteLine(name + ": Stopped GSR reading");
             }
