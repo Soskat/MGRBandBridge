@@ -22,6 +22,11 @@ namespace BandBridge.Data
         /// The capacity of the buffer.
         /// </summary>
         private int capacity;
+
+        /// <summary>
+        /// Is the buffer full?
+        /// </summary>
+        private bool isFull;
         #endregion
 
         #region Properties
@@ -31,6 +36,14 @@ namespace BandBridge.Data
         public int Capacity
         {
             get { return capacity; }
+        }
+
+        /// <summary>
+        /// Is the buffer full?
+        /// </summary>
+        private bool IsFull
+        {
+            get { return isFull; }
         }
         #endregion
 
@@ -44,6 +57,7 @@ namespace BandBridge.Data
             capacity = size;
             buffer = new int[capacity];
             iterator = 0;
+            isFull = false;
         }
         #endregion
 
@@ -56,6 +70,7 @@ namespace BandBridge.Data
         {
             buffer[iterator] = obj;
             iterator = ++iterator % buffer.Length;
+            if (iterator == 0) isFull = true;
         }
 
         /// <summary>
@@ -64,6 +79,7 @@ namespace BandBridge.Data
         public void Clear()
         {
             buffer = new int[capacity];
+            isFull = false;
         }
 
         /// <summary>

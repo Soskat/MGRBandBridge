@@ -444,9 +444,8 @@ namespace BandBridge.ViewModels
                         if (connectedBands.ContainsKey((string)message.Result))
                         {
                             // get current sensors data and send them back to remote client:
-                            
-                            //return new Message(MessageCode.CALIB_ANS, new SensorData[] { hrData, gsrData });
-                            return new Message(MessageCode.CALIB_ANS, null);
+                            var data = await connectedBands[(string)message.Result].CalibrateSensorsData();
+                            return new Message(MessageCode.CALIB_ANS, data);
                         }
                         else
                             return new Message(MessageCode.CALIB_ANS, null);

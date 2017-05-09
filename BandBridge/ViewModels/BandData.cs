@@ -258,5 +258,25 @@ namespace BandBridge.ViewModels
             Debug.WriteLine("__Stopped reading data__");
         }
         #endregion
+
+
+
+
+        public async Task<SensorData[]> CalibrateSensorsData()
+        {
+            // calibrate sensors data:
+            await StopReadingSensorsData();
+            hrBuffer.Resize(calibrationBufferSize);
+            gsrBuffer.Resize(calibrationBufferSize);
+            await StartReadingSensorsData();
+            // wait until the buffer is full:
+            //...
+
+            // get the reference values for each sensor:
+            SensorData hrData = new SensorData(SensorCode.HR, hrBuffer.GetAverage());
+            SensorData gsrData = new SensorData(SensorCode.GSR, gsrBuffer.GetAverage());
+
+            return new SensorData[] { hrData, gsrData };
+        }
     }
 }
