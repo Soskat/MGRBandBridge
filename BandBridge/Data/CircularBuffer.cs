@@ -17,15 +17,31 @@ namespace BandBridge.Data
         /// The index of currently active buffer element.
         /// </summary>
         private int iterator;
+
+        /// <summary>
+        /// The capacity of the buffer.
+        /// </summary>
+        private int capacity;
+        #endregion
+
+        #region Properties
+        /// <summary>
+        /// The capacity of the buffer.
+        /// </summary>
+        public int Capacity
+        {
+            get { return capacity; }
+        }
         #endregion
 
         #region Constructors
         /// <summary>
         /// Creates a new instance of class <see cref="CircularBuffer"/>.
         /// </summary>
-        /// <param name="capacity">Capacity of the buffer</param>
-        public CircularBuffer(int capacity)
+        /// <param name="size">Size of the buffer</param>
+        public CircularBuffer(int size)
         {
+            capacity = size;
             buffer = new int[capacity];
             iterator = 0;
         }
@@ -40,6 +56,24 @@ namespace BandBridge.Data
         {
             buffer[iterator] = obj;
             iterator = ++iterator % buffer.Length;
+        }
+
+        /// <summary>
+        /// Clears the buffer.
+        /// </summary>
+        public void Clear()
+        {
+            buffer = new int[capacity];
+        }
+
+        /// <summary>
+        /// Resizes the buffer.
+        /// </summary>
+        /// <param name="newSize">New size of the buffer</param>
+        public void Resize(int newSize)
+        {
+            capacity = newSize;
+            Clear();
         }
 
         /// <summary>
