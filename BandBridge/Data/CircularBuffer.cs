@@ -41,7 +41,7 @@ namespace BandBridge.Data
         /// <summary>
         /// Is the buffer full?
         /// </summary>
-        private bool IsFull
+        public bool IsFull
         {
             get { return isFull; }
         }
@@ -79,6 +79,7 @@ namespace BandBridge.Data
         public void Clear()
         {
             buffer = new int[capacity];
+            iterator = 0;
             isFull = false;
         }
 
@@ -107,7 +108,10 @@ namespace BandBridge.Data
                     itemsCount++;
                 }
             }
-            return sum / itemsCount;
+            if (itemsCount > 0)
+                return sum / itemsCount;
+            else
+                return 0;
         }
 
         /// <summary>

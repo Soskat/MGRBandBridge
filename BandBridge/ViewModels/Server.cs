@@ -332,6 +332,11 @@ namespace BandBridge.ViewModels
 
             // update ObservableCollection of connected Bands:
             SetupBandsListView();
+
+            await Task.Delay(1000);
+            var data = await connectedBands["Fake Band 1"].CalibrateSensorsData();
+            Debug.WriteLine("Average HR: " + data[0]);
+            Debug.WriteLine("Average GSR: " + data[1]);
         }
         #endregion
 
@@ -445,6 +450,8 @@ namespace BandBridge.ViewModels
                         {
                             // get current sensors data and send them back to remote client:
                             var data = await connectedBands[(string)message.Result].CalibrateSensorsData();
+                            Debug.WriteLine("Average HR: " + data[0]);
+                            Debug.WriteLine("Average GSR: " + data[1]);
                             return new Message(MessageCode.CALIB_ANS, data);
                         }
                         else
