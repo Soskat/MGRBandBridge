@@ -15,35 +15,35 @@ namespace BandBridge.ViewModels
     public class BandData : NotificationBase
     {
         #region Fields
-        /// <summary>C
+        /// <summary>
         /// Connected MS Band device.
         /// </summary>
-        private IBandClient _BandClient;
+        private IBandClient bandClient;
 
         /// <summary>
         /// MS Band device name.
         /// </summary>
-        private string _Name;
+        private string name;
 
         /// <summary>
         /// Last Heart Rate sensor reading.
         /// </summary>
-        private int _HrReading;
+        private int hrReading;
 
         /// <summary>
         /// Last GSR sensor reading.
         /// </summary>
-        private int _GsrReading;
+        private int gsrReading;
 
         /// <summary>
         /// Storage for Heart Rate sensor values.
         /// </summary>
-        private CircularBuffer _HrBuffer;
+        private CircularBuffer hrBuffer;
 
         /// <summary>
         /// Storage for GSR sensor values.
         /// </summary>
-        private CircularBuffer _GsrBuffer;
+        private CircularBuffer gsrBuffer;
         #endregion
 
         #region Properties
@@ -52,8 +52,8 @@ namespace BandBridge.ViewModels
         /// </summary>
         public IBandClient BandClient
         {
-            get { return _BandClient; }
-            set { SetProperty(_BandClient, value, () => _BandClient = value); }
+            get { return bandClient; }
+            set { SetProperty(bandClient, value, () => bandClient = value); }
         }
 
         /// <summary>
@@ -61,8 +61,8 @@ namespace BandBridge.ViewModels
         /// </summary>
         public string Name
         {
-            get { return _Name; }
-            set { SetProperty(_Name, value, () => _Name = value); }
+            get { return name; }
+            set { SetProperty(name, value, () => name = value); }
         }
 
         /// <summary>
@@ -70,8 +70,8 @@ namespace BandBridge.ViewModels
         /// </summary>
         public int HrReading
         {
-            get { return _HrReading; }
-            set { SetProperty(_HrReading, value, () => _HrReading = value); }
+            get { return hrReading; }
+            set { SetProperty(hrReading, value, () => hrReading = value); }
         }
 
         /// <summary>
@@ -79,8 +79,8 @@ namespace BandBridge.ViewModels
         /// </summary>
         public int GsrReading
         {
-            get { return _GsrReading; }
-            set { SetProperty(_GsrReading, value, () => _GsrReading = value); }
+            get { return gsrReading; }
+            set { SetProperty(gsrReading, value, () => gsrReading = value); }
         }
 
         /// <summary>
@@ -88,8 +88,8 @@ namespace BandBridge.ViewModels
         /// </summary>
         public CircularBuffer HrBuffer
         {
-            get { return _HrBuffer; }
-            set { SetProperty(_HrBuffer, value, () => _HrBuffer = value); }
+            get { return hrBuffer; }
+            set { SetProperty(hrBuffer, value, () => hrBuffer = value); }
         }
 
         /// <summary>
@@ -97,8 +97,8 @@ namespace BandBridge.ViewModels
         /// </summary>
         public CircularBuffer GsrBuffer
         {
-            get { return _GsrBuffer; }
-            set { SetProperty(_GsrBuffer, value, () => _GsrBuffer = value); }
+            get { return gsrBuffer; }
+            set { SetProperty(gsrBuffer, value, () => gsrBuffer = value); }
         }
         #endregion
         
@@ -144,7 +144,7 @@ namespace BandBridge.ViewModels
             try
             {
                 await BandClient.SensorManager.HeartRate.StartReadingsAsync();
-                Debug.WriteLine(_Name + ": Started HR reading");
+                Debug.WriteLine(name + ": Started HR reading");
             }
             catch (BandException ex)
             {
@@ -177,7 +177,7 @@ namespace BandBridge.ViewModels
             try
             {
                 await BandClient.SensorManager.Gsr.StartReadingsAsync();
-                Debug.WriteLine(_Name + ": Started GSR reading");
+                Debug.WriteLine(name + ": Started GSR reading");
             }
             catch (BandException ex)
             {
@@ -195,7 +195,7 @@ namespace BandBridge.ViewModels
             try
             {
                 await BandClient.SensorManager.HeartRate.StopReadingsAsync();
-                Debug.WriteLine(_Name + ": Stopped HR reading");
+                Debug.WriteLine(name + ": Stopped HR reading");
             }
             catch (BandException ex)
             {
@@ -213,7 +213,7 @@ namespace BandBridge.ViewModels
             try
             {
                 await BandClient.SensorManager.Gsr.StopReadingsAsync();
-                Debug.WriteLine(_Name + ": Stopped GSR reading");
+                Debug.WriteLine(name + ": Stopped GSR reading");
             }
             catch (BandException ex)
             {

@@ -24,47 +24,47 @@ namespace BandBridge.ViewModels
         /// <summary>
         /// Local host name.
         /// </summary>
-        private HostName _LocalHost;
+        private HostName localHost;
 
         /// <summary>
         /// Service port number written in string.
         /// </summary>
-        private string _ServicePort;
+        private string servicePort;
 
         /// <summary>
         /// Server <see cref="StreamSocketListener"/> object.
         /// </summary>
-        private StreamSocketListener _ServerSocketListener;
+        private StreamSocketListener serverSocketListener;
         
         /// <summary>
         /// Fake Bands amount.
         /// </summary>
-        private int _FakeBandsAmount = 6;
+        private int fakeBandsAmount = 6;
         
         /// <summary>
         /// Dictionary of connected Band devices.
         /// </summary>
-        private Dictionary<string, BandData> _ConnectedBands;
+        private Dictionary<string, BandData> connectedBands;
 
         /// <summary>
         /// List of connected Bands data.
         /// </summary>
-        private ObservableCollection<BandData> _ConnectedBandsCollection;
+        private ObservableCollection<BandData> connectedBandsCollection;
         
         /// <summary>
         /// Is server working?
         /// </summary>
-        private bool _IsServerWorking;
+        private bool isServerWorking;
         
         /// <summary>
         /// Band data buffer size.
         /// </summary>
-        private int _BandBufferSize = 16;
+        private int bandBufferSize = 16;
 
         /// <summary>
         /// Calibration data buffer size.
         /// </summary>
-        private int _CalibrationBufferSize = 100;
+        private int calibrationBufferSize = 100;
 
         /// <summary>
         /// Received message.
@@ -88,8 +88,8 @@ namespace BandBridge.ViewModels
         /// </summary>
         public HostName LocalHost
         {
-            get { return _LocalHost; }
-            set { SetProperty(_LocalHost, value, () => _LocalHost = value); }
+            get { return localHost; }
+            set { SetProperty(localHost, value, () => localHost = value); }
         }
 
         /// <summary>
@@ -97,8 +97,8 @@ namespace BandBridge.ViewModels
         /// </summary>
         public string ServicePort
         {
-            get { return _ServicePort; }
-            set { SetProperty(_ServicePort, value, () => _ServicePort = value); }
+            get { return servicePort; }
+            set { SetProperty(servicePort, value, () => servicePort = value); }
         }
 
         /// <summary>
@@ -106,8 +106,8 @@ namespace BandBridge.ViewModels
         /// </summary>
         public int FakeBandsAmount
         {
-            get { return _FakeBandsAmount; }
-            set { if (value >= 0) SetProperty(_FakeBandsAmount, value, () => _FakeBandsAmount = value); }
+            get { return fakeBandsAmount; }
+            set { if (value >= 0) SetProperty(fakeBandsAmount, value, () => fakeBandsAmount = value); }
         }
 
         /// <summary>
@@ -115,8 +115,8 @@ namespace BandBridge.ViewModels
         /// </summary>
         public ObservableCollection<BandData> ConnectedBandsCollection
         {
-            get { return _ConnectedBandsCollection; }
-            set { SetProperty(ref _ConnectedBandsCollection, value); }
+            get { return connectedBandsCollection; }
+            set { SetProperty(ref connectedBandsCollection, value); }
         }
         
         /// <summary>
@@ -124,8 +124,8 @@ namespace BandBridge.ViewModels
         /// </summary>
         public bool IsServerWorking
         {
-            get { return _IsServerWorking; }
-            set { SetProperty(_IsServerWorking, value, () => _IsServerWorking = value); }
+            get { return isServerWorking; }
+            set { SetProperty(isServerWorking, value, () => isServerWorking = value); }
         }
         
         /// <summary>
@@ -133,8 +133,8 @@ namespace BandBridge.ViewModels
         /// </summary>
         public int BandBufferSize
         {
-            get { return _BandBufferSize; }
-            set { SetProperty(_BandBufferSize, value, () => _BandBufferSize = value); }
+            get { return bandBufferSize; }
+            set { SetProperty(bandBufferSize, value, () => bandBufferSize = value); }
         }
 
         /// <summary>
@@ -142,8 +142,8 @@ namespace BandBridge.ViewModels
         /// </summary>
         public int CalibrationBufferSize
         {
-            get { return _CalibrationBufferSize; }
-            set { SetProperty(_CalibrationBufferSize, value, () => _CalibrationBufferSize = value); }
+            get { return calibrationBufferSize; }
+            set { SetProperty(calibrationBufferSize, value, () => calibrationBufferSize = value); }
         }
         #endregion
 
@@ -173,14 +173,14 @@ namespace BandBridge.ViewModels
             try
             {
                 // Create a StreamSocketListener to start listening for TCP connections:
-                if (_ServerSocketListener == null) _ServerSocketListener = new StreamSocketListener();
+                if (serverSocketListener == null) serverSocketListener = new StreamSocketListener();
                 else return;
 
                 // Hook up an event handler to call when connections are received:
-                _ServerSocketListener.ConnectionReceived += SocketListener_ConnectionReceived;
+                serverSocketListener.ConnectionReceived += SocketListener_ConnectionReceived;
 
                 // Start listening for incoming TCP connections on the specified port:
-                await _ServerSocketListener.BindServiceNameAsync(ServicePort);
+                await serverSocketListener.BindServiceNameAsync(ServicePort);
 
                 IsServerWorking = true;                
                 Debug.WriteLine("Waiting for connections...");
@@ -200,10 +200,10 @@ namespace BandBridge.ViewModels
             try
             {
                 // explicitly close the socketListener:
-                if (_ServerSocketListener != null)
+                if (serverSocketListener != null)
                 {
-                    _ServerSocketListener.Dispose();
-                    _ServerSocketListener = null;
+                    serverSocketListener.Dispose();
+                    serverSocketListener = null;
                     IsServerWorking = false;
                 }
             }
@@ -224,17 +224,17 @@ namespace BandBridge.ViewModels
             IBandClientManager clientManager = BandClientManager.Instance;
             IBandInfo[] pairedBands = await clientManager.GetBandsAsync();
 
-            // make sure that _ConnectedBands dictionary exists:
-            if (_ConnectedBands == null) _ConnectedBands = new Dictionary<string, BandData>();
+            // make sure that connectedBands dictionary exists:
+            if (connectedBands == null) connectedBands = new Dictionary<string, BandData>();
             else
             {
                 // dispose all connected bands:
-                foreach (var band in _ConnectedBands)
+                foreach (var band in connectedBands)
                 {
                     await band.Value.StopReadingSensorsData();
                     band.Value.BandClient.Dispose();
                 }
-                _ConnectedBands.Clear();
+                connectedBands.Clear();
             }
 
             // deal with all connected Band devices:
@@ -243,7 +243,7 @@ namespace BandBridge.ViewModels
                 Dictionary<string, BandData> tempCB = new Dictionary<string, BandData>();
 
                 // keep existing BandData from previously connected Band devices untouched:
-                foreach (KeyValuePair<string, BandData> kvp in _ConnectedBands)
+                foreach (KeyValuePair<string, BandData> kvp in connectedBands)
                 {
                     for (int i = 0; i < pairedBands.Length; i++)
                     {
@@ -272,9 +272,9 @@ namespace BandBridge.ViewModels
                         }
                     }
                 }
-                // update _ConnectedBands dictionary:
-                _ConnectedBands.Clear();
-                _ConnectedBands = tempCB;
+                // update connectedBands dictionary:
+                connectedBands.Clear();
+                connectedBands = tempCB;
             }
             else
             {
@@ -303,17 +303,17 @@ namespace BandBridge.ViewModels
             IBandClientManager clientManager = FakeBandClientManager.Instance;
             IBandInfo[] pairedBands = await clientManager.GetBandsAsync();
 
-            // clear _ConnectedBands dictionary:
-            if (_ConnectedBands == null) _ConnectedBands = new Dictionary<string, BandData>();
+            // clear connectedBands dictionary:
+            if (connectedBands == null) connectedBands = new Dictionary<string, BandData>();
             else
             {
                 // dispose all connected bands:
-                foreach (var band in _ConnectedBands)
+                foreach (var band in connectedBands)
                 {
                     await band.Value.StopReadingSensorsData();
                     band.Value.BandClient.Dispose();
                 }
-                _ConnectedBands.Clear();
+                connectedBands.Clear();
             }
 
             // connect new fake Bands:
@@ -324,7 +324,7 @@ namespace BandBridge.ViewModels
                 {
                     // add new Band to collection:
                     BandData bandData = new BandData(bandClient, band.Name, BandBufferSize);
-                    _ConnectedBands.Add(band.Name, bandData);
+                    connectedBands.Add(band.Name, bandData);
 
                     await bandData.StartReadingSensorsData();
                 }
@@ -399,7 +399,7 @@ namespace BandBridge.ViewModels
                 ConnectedBandsCollection.Clear();
 
             // update ObservableCollection:
-            foreach (BandData bandData in _ConnectedBands.Values)
+            foreach (BandData bandData in connectedBands.Values)
             {
                 ConnectedBandsCollection.Add(bandData);
             }
@@ -416,20 +416,20 @@ namespace BandBridge.ViewModels
             {
                 // send the list of all connected Bands:
                 case MessageCode.SHOW_LIST_ASK:
-                    if (_ConnectedBands != null)
-                        return new Message(MessageCode.SHOW_LIST_ANS, _ConnectedBands.Keys.ToArray());
+                    if (connectedBands != null)
+                        return new Message(MessageCode.SHOW_LIST_ANS, connectedBands.Keys.ToArray());
                     else
                         return new Message(MessageCode.SHOW_LIST_ANS, null);
 
                 // send current sensors data from specific Band device:
                 case MessageCode.GET_DATA_ASK:
-                    if (_ConnectedBands != null && message.Result != null && message.Result.GetType() == typeof(string))
+                    if (connectedBands != null && message.Result != null && message.Result.GetType() == typeof(string))
                     {
-                        if (_ConnectedBands.ContainsKey((string)message.Result))
+                        if (connectedBands.ContainsKey((string)message.Result))
                         {
                             // get current sensors data and send them back to remote client:
-                            SensorData hrData = new SensorData(SensorCode.HR, _ConnectedBands[(string)message.Result].HrBuffer.GetAverage());
-                            SensorData gsrData = new SensorData(SensorCode.HR, _ConnectedBands[(string)message.Result].GsrBuffer.GetAverage());
+                            SensorData hrData = new SensorData(SensorCode.HR, connectedBands[(string)message.Result].HrBuffer.GetAverage());
+                            SensorData gsrData = new SensorData(SensorCode.HR, connectedBands[(string)message.Result].GsrBuffer.GetAverage());
                             return new Message(MessageCode.GET_DATA_ANS, new SensorData[] { hrData, gsrData });
                         }
                         else
@@ -439,16 +439,14 @@ namespace BandBridge.ViewModels
 
                 // callibrate sensors data to get control average values:
                 case MessageCode.CALIB_ASK:
-                    if (_ConnectedBands != null && message.Result != null && message.Result.GetType() == typeof(string))
+                    if (connectedBands != null && message.Result != null && message.Result.GetType() == typeof(string))
                     {
-                        if (_ConnectedBands.ContainsKey((string)message.Result))
+                        if (connectedBands.ContainsKey((string)message.Result))
                         {
                             // get current sensors data and send them back to remote client:
-
-                            //SensorData hrData = new SensorData(SensorCode.HR, _ConnectedBands[(string)message.Result].HrBuffer.GetAverage());
-                            //SensorData gsrData = new SensorData(SensorCode.HR, _ConnectedBands[(string)message.Result].GsrBuffer.GetAverage());
-
-                            return new Message(MessageCode.CALIB_ANS, new SensorData[] { hrData, gsrData });
+                            
+                            //return new Message(MessageCode.CALIB_ANS, new SensorData[] { hrData, gsrData });
+                            return new Message(MessageCode.CALIB_ANS, null);
                         }
                         else
                             return new Message(MessageCode.CALIB_ANS, null);
