@@ -269,14 +269,10 @@ namespace BandBridge.ViewModels
             hrBuffer.Resize(calibrationBufferSize);
             gsrBuffer.Resize(calibrationBufferSize);
             await StartReadingSensorsData();
-            // wait until the buffer is full:
+
             Debug.WriteLine(name + ": start calibration => " + DateTime.Now);
-            int i = 0;
-            while (!hrBuffer.IsFull)
-            {
-                //Debug.WriteLine("buka " + i++);
-                await Task.Delay(100);
-            }
+            // wait until the buffer is full:
+            while (!hrBuffer.IsFull) await Task.Delay(100);
             Debug.WriteLine(name + ": calibration is over => " + DateTime.Now);
 
             // get the reference values for each sensor:
