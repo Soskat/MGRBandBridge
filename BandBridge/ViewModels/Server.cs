@@ -39,7 +39,7 @@ namespace BandBridge.ViewModels
         /// <summary>
         /// Fake Bands amount.
         /// </summary>
-        private int fakeBandsAmount = 6;
+        private int fakeBandsAmount = 2;
         
         /// <summary>
         /// Dictionary of connected Band devices.

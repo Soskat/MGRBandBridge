@@ -157,7 +157,7 @@ namespace BandBridge.ViewModels
             try
             {
                 await BandClient.SensorManager.HeartRate.StartReadingsAsync();
-                Debug.WriteLine(name + ": Started HR reading");
+                //Debug.WriteLine(name + ": Started HR reading");
             }
             catch (BandException ex)
             {
@@ -190,7 +190,7 @@ namespace BandBridge.ViewModels
             try
             {
                 await BandClient.SensorManager.Gsr.StartReadingsAsync();
-                Debug.WriteLine(name + ": Started GSR reading");
+                //Debug.WriteLine(name + ": Started GSR reading");
             }
             catch (BandException ex)
             {
@@ -208,7 +208,7 @@ namespace BandBridge.ViewModels
             {
                 // stop the HR sensor:
                 await BandClient.SensorManager.HeartRate.StopReadingsAsync();
-                Debug.WriteLine(name + ": Stopped HR reading");
+                //Debug.WriteLine(name + ": Stopped HR reading");
             }
             catch (BandException ex)
             {
@@ -226,7 +226,7 @@ namespace BandBridge.ViewModels
             {
                 // stop the GSR sensor:
                 await BandClient.SensorManager.Gsr.StopReadingsAsync();
-                Debug.WriteLine(name + ": Stopped GSR reading");
+                //Debug.WriteLine(name + ": Stopped GSR reading");
             }
             catch (BandException ex)
             {
@@ -244,7 +244,7 @@ namespace BandBridge.ViewModels
         {
             await StartHrReading();
             await StartGsrReading();
-            Debug.WriteLine("__Started reading data__");
+            Debug.WriteLine(name + ": Started reading data...");
         }
 
         /// <summary>
@@ -255,7 +255,7 @@ namespace BandBridge.ViewModels
         {
             await StopHrReading();
             await StopGsrReading();
-            Debug.WriteLine("__Stopped reading data__");
+            Debug.WriteLine(name + ": Stopped reading data...");
         }
         #endregion
 
