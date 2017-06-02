@@ -27,5 +27,6 @@
     <Capability Name="internetClient" />
     <Capability Name="privateNetworkClientServer" />
     <DeviceCapability Name="proximity" />
+    <DeviceCapability Name="bluetooth" />
   </Capabilities>
 </Package>
