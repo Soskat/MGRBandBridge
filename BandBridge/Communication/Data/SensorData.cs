@@ -3,11 +3,6 @@
 namespace Communication.Data
 {
     /// <summary>
-    /// Microsoft Band sensor type code.
-    /// </summary>
-    public enum SensorCode : byte { HR, GSR }
-
-    /// <summary>
     /// Class that encapsulates specific value of Microsoft Band sensor reading.
     /// </summary>
     [DataContract]
@@ -44,7 +39,7 @@ namespace Communication.Data
         /// <summary>
         /// Writes SensorData object in form: '[Code][Data]'.
         /// </summary>
-        /// <returns></returns>
+        /// <returns>String version of the <see cref="SensorData"/> object</returns>
         public override string ToString()
         {
             return string.Format("[{0}][{1}]", Code, Data);

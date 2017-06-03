@@ -85,6 +85,13 @@ namespace Communication.Packet
         /// </remarks>
         public Action<byte[]> MessageArrived { get; set; }
 
+
+        /// <summary>
+        /// Signal that all bytes of incoming message were received, even if the message came in several packets.
+        /// </summary>
+        public bool AllBytesReceived { get; set; }
+
+
         /// <summary>
         /// Notifies the <see cref="PacketProtocol"/> instance that incoming data has been received from the stream. This method will invoke <see cref="MessageArrived"/> as necessary.
         /// </summary>
@@ -164,8 +171,7 @@ namespace Communication.Packet
 
                     // Another sanity check is needed here for very large packets, to prevent denial-of-service attacks
                     if (this.maxMessageSize > 0 && length > this.maxMessageSize)
-                        throw new System.Net.ProtocolViolationException("Message length " + length.ToString(System.Globalization.CultureInfo.InvariantCulture) 
-                                                                        + " is larger than maximum message size " + this.maxMessageSize.ToString(System.Globalization.CultureInfo.InvariantCulture));
+                        throw new System.Net.ProtocolViolationException("Message length " + length.ToString(System.Globalization.CultureInfo.InvariantCulture) + " is larger than maximum message size " + this.maxMessageSize.ToString(System.Globalization.CultureInfo.InvariantCulture));
 
                     // Zero-length packets are allowed as keepalives
                     if (length == 0)
@@ -190,6 +196,9 @@ namespace Communication.Packet
                 }
                 else
                 {
+                    // set flag that all message's bytes was reveived:
+                    AllBytesReceived = true;
+
                     // We've gotten an entire packet
                     if (this.MessageArrived != null)
                         this.MessageArrived(this.dataBuffer);
