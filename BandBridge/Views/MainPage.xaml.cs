@@ -24,6 +24,10 @@ namespace BandBridge.Views
         {
             this.InitializeComponent();
             ServerVM = new Server(serivicePort);
+            ServerVM.UpdateConnectionInfo += (info) =>
+            {
+                ConnectedDevicesInfo.Text = info;
+            };
         }
     }
 }

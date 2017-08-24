@@ -132,9 +132,14 @@
 
             <Pivot Grid.Row="1">
                 <PivotItem Header="MS Band" BorderBrush="Black" Background="{x:Null}" >
-                    <Button Content="Connect MS Bands"
+                    <StackPanel Orientation="Horizontal">
+                        <Button Content="Connect MS Bands"
                             Click="{x:Bind ServerVM.GetMSBandDevices}"
                             Style="{StaticResource BandInfoButton}"/>
+                        <TextBlock Name="ConnectedDevicesInfo"
+                                   Style="{StaticResource ServerInfoTextBlock}"
+                                   Foreground="Gray" Text=""/>
+                    </StackPanel>
                 </PivotItem>
                 <PivotItem Header="Fake Band">
                     <StackPanel Orientation="Horizontal">

@@ -21,130 +21,77 @@ namespace BandBridge.ViewModels
     public class Server : NotificationBase
     {
         #region Fields
-        /// <summary>
-        /// Local host name.
-        /// </summary>
+        /// <summary> Local host name.</summary>
         private HostName localHost;
-
-        /// <summary>
-        /// Service port number written in string.
-        /// </summary>
+        /// <summary>Service port number written in string.</summary>
         private string servicePort;
-
-        /// <summary>
-        /// Server <see cref="StreamSocketListener"/> object.
-        /// </summary>
+        /// <summary>Server <see cref="StreamSocketListener"/> object.</summary>
         private StreamSocketListener serverSocketListener;
-        
-        /// <summary>
-        /// Fake Bands amount.
-        /// </summary>
+        /// <summary>Fake Bands amount.</summary>
         private int fakeBandsAmount = 2;
-        
-        /// <summary>
-        /// Dictionary of connected Band devices.
-        /// </summary>
+        /// <summary>Dictionary of connected Band devices.</summary>
         private Dictionary<string, BandData> connectedBands;
-
-        /// <summary>
-        /// List of connected Bands data.
-        /// </summary>
+        /// <summary>List of connected Bands data.</summary>
         private ObservableCollection<BandData> connectedBandsCollection;
-        
-        /// <summary>
-        /// Is server working?
-        /// </summary>
+        /// <summary>Is server working?</summary>
         private bool isServerWorking;
-        
-        /// <summary>
-        /// Band data buffer size.
-        /// </summary>
+        /// <summary>Band data buffer size.</summary>
         private int bandBufferSize = 16;
-
-        /// <summary>
-        /// Calibration data buffer size.
-        /// </summary>
+        /// <summary>Calibration data buffer size.</summary>
         private int calibrationBufferSize = 100;
-
-        /// <summary>
-        /// Received message.
-        /// </summary>
+        /// <summary>Received message.</summary>
         private Message message;
-
-        /// <summary>
-        /// Message buffer size.
-        /// </summary>
+        /// <summary>Message buffer size.</summary>
         private const int bufferSize = 256;
-
-        /// <summary>
-        /// Buffer for incoming data.
-        /// </summary>
+        /// <summary>Buffer for incoming data.</summary>
         private byte[] receiveBuffer;
         #endregion
-        
+
         #region Properties
-        /// <summary>
-        /// Local host name.
-        /// </summary>
+        /// <summary>Local host name.</summary>
         public HostName LocalHost
         {
             get { return localHost; }
             set { SetProperty(localHost, value, () => localHost = value); }
         }
-
-        /// <summary>
-        /// Service port number written in string.
-        /// </summary>
+        /// <summary>Service port number written in string.</summary>
         public string ServicePort
         {
             get { return servicePort; }
             set { SetProperty(servicePort, value, () => servicePort = value); }
         }
-
-        /// <summary>
-        /// Fake Bands amount.
-        /// </summary>
+        /// <summary>Fake Bands amount.</summary>
         public int FakeBandsAmount
         {
             get { return fakeBandsAmount; }
             set { if (value >= 0) SetProperty(fakeBandsAmount, value, () => fakeBandsAmount = value); }
         }
-
-        /// <summary>
-        /// List of connected Bands data.
-        /// </summary>
+        /// <summary>List of connected Bands data.</summary>
         public ObservableCollection<BandData> ConnectedBandsCollection
         {
             get { return connectedBandsCollection; }
             set { SetProperty(ref connectedBandsCollection, value); }
         }
-        
-        /// <summary>
-        /// Is server working?
-        /// </summary>
+        /// <summary>Is server working?</summary>
         public bool IsServerWorking
         {
             get { return isServerWorking; }
             set { SetProperty(isServerWorking, value, () => isServerWorking = value); }
         }
-        
-        /// <summary>
-        /// Band data buffer size.
-        /// </summary>
+        /// <summary>Band data buffer size.</summary>
         public int BandBufferSize
         {
             get { return bandBufferSize; }
             set { SetProperty(bandBufferSize, value, () => bandBufferSize = value); }
         }
-
-        /// <summary>
-        /// Calibration data buffer size.
-        /// </summary>
+        /// <summary>Calibration data buffer size.</summary>
         public int CalibrationBufferSize
         {
             get { return calibrationBufferSize; }
             set { SetProperty(calibrationBufferSize, value, () => calibrationBufferSize = value); }
         }
+        /// <summary>Informs about connection info update.</summary>
+        public Action<string> UpdateConnectionInfo { get; set; }
         #endregion
 
         #region Constructors
@@ -158,8 +105,9 @@ namespace BandBridge.ViewModels
             //FakeBandsAmount = 6;
             IsServerWorking = false;
             // get host's IPv4 address:
-            LocalHost = Array.Find(NetworkInformation.GetHostNames().ToArray(),
-                                   a => a.IPInformation != null && a.Type == HostNameType.Ipv4);
+            LocalHost = Array.Find(NetworkInformation.GetHostNames().ToArray(), a => a.IPInformation != null && a.Type == HostNameType.Ipv4);
+            // sign up to delegate:
+            UpdateConnectionInfo += (info) => { Debug.WriteLine("Connection info: " + info); };
         }
         #endregion
 
@@ -194,7 +142,6 @@ namespace BandBridge.ViewModels
         /// <summary>
         /// Stops the server.
         /// </summary>
-        /// <returns></returns>
         public void StopServer()
         {
             try
@@ -220,6 +167,7 @@ namespace BandBridge.ViewModels
         public async Task GetMSBandDevices()
         {
             Debug.WriteLine(">> Get MS Band devices...");
+            UpdateConnectionInfo("");
 
             IBandClientManager clientManager = BandClientManager.Instance;
             IBandInfo[] pairedBands = await clientManager.GetBandsAsync();
@@ -275,10 +223,13 @@ namespace BandBridge.ViewModels
                 // update connectedBands dictionary:
                 connectedBands.Clear();
                 connectedBands = tempCB;
+
+                UpdateConnectionInfo("MS Band found");
             }
             else
             {
-                Debug.WriteLine(">> No Bands found");
+                //Debug.WriteLine(">> No Bands found");
+                UpdateConnectionInfo("MS Band not found");
             }
 
             // update ObservableCollection of connected Bands:
