@@ -19,7 +19,8 @@
             <Setter Property="VerticalAlignment" Value="Center"/>
         </Style>
         
-        <Style x:Key="HeaderTextBlock" TargetType="TextBlock" BasedOn="{StaticResource ServerInfoTextBlock}">
+        <Style x:Key="HeaderTextBlock" TargetType="TextBlock"
+               BasedOn="{StaticResource ServerInfoTextBlock}">
             <Setter Property="FontSize" Value="18"/>
             <Setter Property="FontWeight" Value="SemiBold"/>
         </Style>
@@ -39,7 +40,8 @@
             <Setter Property="HorizontalAlignment" Value="Center"/>
         </Style>
 
-        <Style x:Key="BandInfoButton" TargetType="Button" BasedOn="{StaticResource ServerInfoButton}">
+        <Style x:Key="BandInfoButton" TargetType="Button"
+               BasedOn="{StaticResource ServerInfoButton}">
             <Setter Property="HorizontalAlignment" Value="Left"/>
         </Style>
 

@@ -9,6 +9,8 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
+using Windows.Devices.Bluetooth;
+using Windows.Devices.Enumeration;
 using Windows.Networking;
 using Windows.Networking.Connectivity;
 using Windows.Networking.Sockets;
@@ -172,6 +174,15 @@ namespace BandBridge.ViewModels
             IBandClientManager clientManager = BandClientManager.Instance;
             IBandInfo[] pairedBands = await clientManager.GetBandsAsync();
 
+            // debug: -------------------------------------------------------
+            Debug.WriteLine(pairedBands);
+            Debug.WriteLine(pairedBands.Length);
+            var selector = BluetoothDevice.GetDeviceSelector();
+            var devices = await DeviceInformation.FindAllAsync(selector);
+            Debug.WriteLine(devices);
+            foreach (var device in devices) Debug.WriteLine(device);
+            // /debug: ------------------------------------------------------
+
             // make sure that connectedBands dictionary exists:
             if (connectedBands == null) connectedBands = new Dictionary<string, BandData>();
             else
@@ -223,15 +234,8 @@ namespace BandBridge.ViewModels
                 // update connectedBands dictionary:
                 connectedBands.Clear();
                 connectedBands = tempCB;
-
-                UpdateConnectionInfo("MS Band found");
             }
-            else
-            {
-                //Debug.WriteLine(">> No Bands found");
-                UpdateConnectionInfo("MS Band not found");
-            }
-
+            UpdateConnectionInfo(String.Format("Found {0} MS Band devices", pairedBands.Length));
             // update ObservableCollection of connected Bands:
             SetupBandsListView();
         }
